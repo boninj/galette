@@ -43,6 +43,7 @@ CREATE TABLE galette_adherents (
   gpgid text DEFAULT NULL,
   fingerprint varchar(50) DEFAULT NULL,
   parent_id int(10) unsigned DEFAULT NULL,
+  has_consent tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (id_adh),
   UNIQUE (login_adh),
   FOREIGN KEY (id_statut) REFERENCES galette_statuts (id_statut) ON DELETE RESTRICT ON UPDATE CASCADE,

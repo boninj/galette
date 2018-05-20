@@ -64,6 +64,7 @@ class MembersList extends Pagination
     private $_account_status_filter;
     private $_email_filter;
     private $_group_filter;
+    private $_has_consent;
 
     private $_selected;
     private $_unreachable;
@@ -79,6 +80,7 @@ class MembersList extends Pagination
         'group_filter',
         'selected',
         'unreachable',
+        'has_consent',
         'query'
     );
 
@@ -117,6 +119,7 @@ class MembersList extends Pagination
         $this->_email_filter = Members::FILTER_DC_EMAIL;
         $this->_group_filter = null;
         $this->_selected = array();
+        $this->_has_consent = Members::FILTER_DC_CONSENT;
     }
 
     /**
@@ -242,6 +245,25 @@ class MembersList extends Pagination
                         );
                     }
                     break;
+                case 'has_consent':
+                    switch ($value) {
+                        case Members::FILTER_DC_CONSENT:
+                        case Members::FILTER_W_CONSENT:
+                        case Members::FILTER_WO_CONSENT:
+                            $this->_has_consent = $value;
+                            break;
+                        default:
+                            Analog::log(
+                                '[MembersList] Value for consent filter should be either ' .
+                                Members::FILTER_DC_CONSENT . ', ' .
+                                Members::FILTER_W_CONSENT . ' or ' .
+                                Members::FILTER_WO_CONSENT . ' (' . $value . ' given)',
+                                Analog::WARNING
+                            );
+                            break;
+                    }
+                    break;
+
                 case 'query':
                     $this->$name = $value;
                     break;

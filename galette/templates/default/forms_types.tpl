@@ -6,7 +6,7 @@
                     {include file="forms_types/picture.tpl"}
                 {/if}
                 {foreach item=entry from=$fieldset->elements}
-                    {if $entry->field_id neq 'adresse2_adh'}
+                    {if $entry->field_id neq 'adresse2_adh' and $entry->field_id neq 'has_consent'}
                         {assign var="template" value="text.tpl"}
                         {assign var="title" value=null}
                         {assign var="tip" value=null}

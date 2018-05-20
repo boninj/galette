@@ -23,16 +23,27 @@
                 <option value="{$group->getId()}"{if $filters->group_filter eq $group->getId()} selected="selected"{/if}>{$group->getIndentName()}</option>
 {/foreach}
             </select>
-            <input type="submit" class="inline" value="{_T string="Filter"}"/>
-            <input type="submit" name="clear_filter" class="inline" value="{_T string="Clear filter"}"/>
             <div>
-                {_T string="Members that have an email address:"}
+                {_T string="Have an email address:"}
                 <input type="radio" name="email_filter" id="filter_dc_email" value="{Galette\Repository\Members::FILTER_DC_EMAIL}"{if $filters->email_filter eq constant('Galette\Repository\Members::FILTER_DC_EMAIL')} checked="checked"{/if}>
                 <label for="filter_dc_email" >{_T string="Don't care"}</label>
                 <input type="radio" name="email_filter" id="filter_with_email" value="{Galette\Repository\Members::FILTER_W_EMAIL}"{if $filters->email_filter eq constant('Galette\Repository\Members::FILTER_W_EMAIL')} checked="checked"{/if}>
                 <label for="filter_with_email" >{_T string="With"}</label>
                 <input type="radio" name="email_filter" id="filter_without_email" value="{Galette\Repository\Members::FILTER_WO_EMAIL}"{if $filters->email_filter eq constant('Galette\Repository\Members::FILTER_WO_EMAIL')} checked="checked"{/if}>
                 <label for="filter_without_email" >{_T string="Without"}</label>
+            </div>
+            <div>
+                {_T string="Give their consent"}
+                <input type="radio" name="has_consent" id="filter_dc_consent" value="{Galette\Repository\Members::FILTER_DC_CONSENT}"{if $filters->has_consent eq constant('Galette\Repository\Members::FILTER_DC_CONSENT')} checked="checked"{/if}>
+                <label for="filter_dc_consent" >{_T string="Don't care"}</label>
+                <input type="radio" name="has_consent" id="filter_with_consent" value="{Galette\Repository\Members::FILTER_W_CONSENT}"{if $filters->has_consent eq constant('Galette\Repository\Members::FILTER_W_CONSENT')} checked="checked"{/if}>
+                <label for="filter_with_consent" >{_T string="Yes"}</label>
+                <input type="radio" name="has_consent" id="filter_without_consent" value="{Galette\Repository\Members::FILTER_WO_CONSENT}"{if $filters->has_consent eq constant('Galette\Repository\Members::FILTER_WO_CONSENT')} checked="checked"{/if}>
+                <label for="filter_without_consent" >{_T string="No"}</label>
+            </div>
+            <div>
+                <input type="submit" class="inline" value="{_T string="Filter"}"/>
+                <input type="submit" name="clear_filter" class="inline" value="{_T string="Clear filter"}"/>
             </div>
 {else}
             <p>

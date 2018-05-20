@@ -97,6 +97,9 @@ class Members
     const FILTER_W_PUBINFOS = 10;
     const FILTER_WO_PUBINFOS = 11;
     const FILTER_NUMBER = 12;
+    const FILTER_DC_CONSENT = 13;
+    const FILTER_W_CONSENT = 14;
+    const FILTER_WO_CONSENT = 15;
 
     const MEMBERSHIP_ALL = 0;
     const MEMBERSHIP_UP2DATE = 3;
@@ -959,6 +962,14 @@ class Members
             }
             if ($this->filters->email_filter == self::FILTER_WO_EMAIL) {
                 $select->where('(email_adh = \'\' OR email_adh IS NULL)');
+            }
+
+            if ($this->filters->has_consent != self::FILTER_DC_CONSENT) {
+                $qry_value =
+                    $this->filters->has_consent == self::FILTER_W_CONSENT ?
+                        true :
+                        ($zdb->isPostgres() ? 'false' : 0);
+                $select->where(['has_consent' => $qry_value]);
             }
 
             if ($this->filters->filter_str != '') {

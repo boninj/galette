@@ -119,6 +119,7 @@ class Adherent
     private $_managed_groups;
     private $_parent;
     private $_children;
+    private $_has_consent = false;
     //
     private $_row_classes;
     //fields list and their translation
@@ -200,6 +201,7 @@ class Adherent
                 $this->_due_free = false;
                 $this->_appears_in_list = false;
                 $this->_parent = null;
+                $this->_has_consent = false;
 
                 if ($this->_deps['dynamics'] === true) {
                     $this->loadDynamicFields();
@@ -350,6 +352,7 @@ class Adherent
         $this->_due_date = $r->date_echeance;
         $this->_others_infos = $r->info_public_adh;
         $this->_others_infos_admin = $r->info_adh;
+        $this->_has_consent = ($r->has_consent == 1) ? true : false;
 
         if ($r->parent_id !== null) {
             $this->_parent = $r->parent_id;
@@ -935,6 +938,7 @@ class Adherent
                     case 'bool_admin_adh':
                     case 'bool_exempt_adh':
                     case 'bool_display_info':
+                    case 'has_consent':
                         $value = 0;
                         break;
                     case 'activite_adh':
@@ -1250,7 +1254,8 @@ class Adherent
                     if (($field === 'bool_admin_adh'
                         || $field === 'bool_exempt_adh'
                         || $field === 'bool_display_info'
-                        || $field === 'activite_adh')
+                        || $field === 'activite_adh'
+                        || $field === 'has_consent')
                         && $this->$prop === false
                     ) {
                         //Handle booleans for postgres ; bugs #18899 and #19354
@@ -1766,5 +1771,15 @@ class Adherent
         $this->_id = null;
         //drop mail, must be unique
         $this->_email = null;
+    }
+
+    /**
+     * Does user consent about giving his data?
+     *
+     * @return boolean
+     */
+    public function hasConsent()
+    {
+        return $this->_has_consent;
     }
 }

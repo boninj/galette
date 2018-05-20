@@ -47,7 +47,7 @@ CREATE SEQUENCE galette_logs_id_seq
     MAXVALUE 2147483647
     MINVALUE 1
     CACHE 1;
-    
+
 -- Sequence for dynamic fields description;
 DROP SEQUENCE IF EXISTS galette_field_types_id_seq;
 CREATE SEQUENCE galette_field_types_id_seq
@@ -178,6 +178,7 @@ CREATE TABLE galette_adherents (
     gpgid text DEFAULT NULL,
     fingerprint character varying(50) DEFAULT NULL,
     parent_id integer DEFAULT NULL REFERENCES galette_adherents(id_adh) ON DELETE RESTRICT ON UPDATE CASCADE,
+    has_consent boolean DEFAULT FALSE NOT NULL,
     PRIMARY KEY (id_adh)
 );
 -- add index for faster search on login_adh (auth)

@@ -139,7 +139,8 @@ class FieldsConfig extends atoum
             'mdp_adh'       => 1,
             'adresse_adh'   => 1,
             'cp_adh'        => 1,
-            'ville_adh'     => 1
+            'ville_adh'     => 1,
+            'has_consent'   => 1
         ];
         $this->array($required)->isEqualTo($expected);
 
@@ -170,7 +171,7 @@ class FieldsConfig extends atoum
         $this->array($categorized[1])
             ->hasSize(12);
         $this->array($categorized[2])
-            ->hasSize(11);
+            ->hasSize(12);
         $this->array($categorized[3])
             ->hasSize(15);
     }
@@ -188,16 +189,20 @@ class FieldsConfig extends atoum
         $required_mdp = $fields_config->getRequired()['mdp_adh'];
         $this->boolean($required_mdp)->isTrue();
 
-        $required_mdp = $fields_config->getCategorizedFields()[2][6]['required'];
-        $this->boolean($required_mdp)->isTrue();
+        $mdp = $fields_config->getCategorizedFields()[2][7];
+        $this->array($mdp)
+            ->string['label']->isIdenticalTo('Password:')
+            ->boolean['required']->isTrue();
 
         $fields_config->setNotRequired('mdp_adh');
 
         $required_mdp = $fields_config->getRequired();
         $this->array($required_mdp)->notHasKey('mdp_adh');
 
-        $required_mdp = $fields_config->getCategorizedFields()[2][6]['required'];
-        $this->boolean($required_mdp)->isFalse();
+        $mdp = $fields_config->getCategorizedFields()[2][7];
+        $this->array($mdp)
+            ->string['label']->isIdenticalTo('Password:')
+            ->boolean['required']->isFalse();
     }
 
     /**
@@ -380,7 +385,7 @@ class FieldsConfig extends atoum
         $this->object($elements[2])->isInstanceOf('\stdClass');
         $this->integer($elements[2]->id)->isIdenticalTo(2);
         $this->array($elements[2]->elements)
-            ->hasSize(10)
+            ->hasSize(11)
             ->hasKey('info_adh');
 
         $user_login = new \mock\Galette\Core\Login(
@@ -405,7 +410,7 @@ class FieldsConfig extends atoum
         $this->object($elements[2])->isInstanceOf('\stdClass');
         $this->integer($elements[2]->id)->isIdenticalTo(2);
         $this->array($elements[2]->elements)
-            ->hasSize(4)
+            ->hasSize(5)
             ->notHasKey('info_adh');
     }
 
@@ -446,7 +451,7 @@ class FieldsConfig extends atoum
         $this->object($elements['fieldsets'][2])->isInstanceOf('\stdClass');
         $this->integer($elements['fieldsets'][2]->id)->isIdenticalTo(2);
         $this->array($elements['fieldsets'][2]->elements)
-            ->hasSize(10)
+            ->hasSize(11)
             ->hasKey('info_adh');
 
         $this->array($elements['hiddens'])
@@ -478,7 +483,7 @@ class FieldsConfig extends atoum
         $this->object($elements['fieldsets'][2])->isInstanceOf('\stdClass');
         $this->integer($elements['fieldsets'][2]->id)->isIdenticalTo(2);
         $this->array($elements['fieldsets'][2]->elements)
-            ->hasSize(4)
+            ->hasSize(5)
             ->notHasKey('info_adh');
 
         $this->array($elements['hiddens'])

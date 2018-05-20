@@ -343,5 +343,13 @@ $members_fields = array(
         'visible'  => FieldsConfig::NOBODY,
         'position' => 25,
         'category' => FieldsCategories::ADH_CATEGORY_CONTACT
+    ),
+    'has_consent'   => array(
+        'label'     => _T("Consent:"),
+        'propname'  => 'has_consent',
+        'required'  => true,
+        'visible'   => FieldsConfig::USER_WRITE,
+        'position'  => 26,
+        'category'  => FieldsCategories::ADH_CATEGORY_GALETTE
     )
 );

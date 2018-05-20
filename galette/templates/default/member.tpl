@@ -65,6 +65,21 @@
     {/if}
         </div>
         <div class="button-container">
+    {if $self_adh || $member->id eq $login->id}
+            <p class="center">
+                <label for="has_consent">{_T string="I consent to get my data stored in this instance"}</label>
+                <input type="checkbox" name="has_consent" id="has_consent" value="1" required="required"/>
+            </p>
+    {else if !$self_adh and ($login->isStaff() || $login->isAdmin())}
+            <p class="center">
+        {if $member->hasConsent()}
+                {_T string="Member has explicitely consent to store its data :)"}
+        {else}
+                {_T string="Member must explicitely consent to store its data!"}<br/>
+                {_T string="You have to make sure of that."}
+        {/if}
+            </p>
+    {/if}
             <input type="submit" name="valid" id="btnsave" value="{_T string="Save"}"/>
 
             {foreach item=entry from=$hidden_elements}

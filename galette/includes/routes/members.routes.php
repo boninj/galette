@@ -445,6 +445,10 @@ $app->post(
             ) {
                 $filters->group_filter = (int)$post['group_filter'];
             }
+            //consent filter
+            if (isset($post['has_consent'])) {
+                $filters->has_consent = (int)$post['has_consent'];
+            }
             //number of rows to show
             if (isset($post['nbshow'])) {
                 $filters->show = $post['nbshow'];
@@ -557,7 +561,9 @@ $app->get(
                 'pref_card_self'    => $this->preferences->pref_card_self,
                 'groups'            => Groups::getSimpleList(),
                 'time'              => time(),
-                'display_elements'  => $display_elements
+                'display_elements'  => $display_elements,
+                'warning_detected'  => $member->hasConsent() ? [] :
+                    [_T("You must explicitely consent to be compliant with GDPR.")]
             )
         );
     }
@@ -675,7 +681,9 @@ $app->get(
                 'pref_card_self'    => $this->preferences->pref_card_self,
                 'groups'            => Groups::getSimpleList(),
                 'time'              => time(),
-                'display_elements'  => $display_elements
+                'display_elements'  => $display_elements,
+                'warning_detected'  => $member->hasConsent() ? [] :
+                    [_T("Member must explicitely consent to be compliant with GDPR.")]
             )
         );
         return $response;

@@ -12,5 +12,7 @@ ALTER TABLE galette_l10n ENGINE=InnoDB;
 ALTER TABLE galette_texts ENGINE=InnoDB;
 ALTER TABLE galette_database ENGINE=InnoDB;
 
+ALTER TABLE galette_adherents ADD has_consent TINYINT(1) NOT NULL DEFAULT 0;
+
 UPDATE galette_database SET version = 0.92;
 SET FOREIGN_KEY_CHECKS=1;
