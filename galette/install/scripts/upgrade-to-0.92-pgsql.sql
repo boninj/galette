@@ -3,6 +3,12 @@ UPDATE galette_texts SET tbody = 'Hello,\r\n\r\nYou''ve just been subscribed on 
 
 UPDATE galette_texts SET tbody = 'Bonjour,\r\n\r\nVous venez d''adhérer à {ASSO_NAME}.\r\n\r\nVous pouvez désormais suivre en temps réel l''état de vos souscriptions et mettre à jour vos coordonnées depuis l''interface web.\r\n\r\nConnectez vous à cette adresse pour valider le nouveau mot de passe :\r\n{CHG_PWD_URI}\r\n\r\nIdentifiant : {LOGIN}\r\nLe lien ci-dessus sera valide jusqu''au {LINK_VALIDITY}.\r\n\r\nA bientôt!\r\n\r\n(Ce courriel est un envoi automatique)' WHERE tref = 'sub' AND tlang = 'fr_FR';
 
+-- add consent field
 ALTER TABLE galette_adherents ADD COLUMN has_consent boolean DEFAULT FALSE NOT NULL;
+
+-- fix fields categories labels
+UPDATE galette_fields_categories SET category = 'Identity:' WHERE id = 1;
+UPDATE galette_fields_categories SET category = 'Galette-related data:' WHERE id = 2;
+UPDATE galette_fields_categories SET category = 'Contact information:' WHERE id = 3;
 
 UPDATE galette_database SET version = 0.92;

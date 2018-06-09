@@ -12,7 +12,13 @@ ALTER TABLE galette_l10n ENGINE=InnoDB;
 ALTER TABLE galette_texts ENGINE=InnoDB;
 ALTER TABLE galette_database ENGINE=InnoDB;
 
+-- add consent field
 ALTER TABLE galette_adherents ADD has_consent TINYINT(1) NOT NULL DEFAULT 0;
+
+-- fix fields categories labels
+UPDATE galette_fields_categories SET category = 'Identity:' WHERE id = 1;
+UPDATE galette_fields_categories SET category = 'Galette-related data:' WHERE id = 2;
+UPDATE galette_fields_categories SET category = 'Contact information:' WHERE id = 3;
 
 UPDATE galette_database SET version = 0.92;
 SET FOREIGN_KEY_CHECKS=1;
