@@ -120,6 +120,16 @@ CREATE SEQUENCE galette_import_model_id_seq
     MINVALUE 1
     CACHE 1;
 
+-- sequence for payment types
+DROP SEQUENCE IF EXISTS galette_paymenttypes_id_seq;
+CREATE SEQUENCE galette_paymenttypes_id_seq
+    START 1
+    INCREMENT 1
+    MAXVALUE 2147483647
+    MINVALUE 1
+    CACHE 1;
+
+
 -- Schema
 -- REMINDER: Create order IS important, dependencies first !!
 DROP TABLE IF EXISTS galette_statuts CASCADE;
@@ -405,6 +415,14 @@ CREATE TABLE galette_import_model (
   model_fields text,
   model_creation_date timestamp NOT NULL,
   PRIMARY KEY (model_id)
+);
+
+-- Table for payment types
+DROP TABLE IF EXISTS galette_paymenttypes;
+CREATE TABLE galette_paymenttypes (
+  type_id integer DEFAULT nextval('galette_paymenttypes_id_seq'::text) NOT NULL,
+  type_name character varying(50) NOT NULL,
+  PRIMARY KEY (type_id)
 );
 
 -- table for database version

@@ -3357,3 +3357,8 @@ $app->post(
             ->withHeader('Location', $this->router->pathFor('adminTools'));
     }
 )->setName('doAdminTools')->add($authenticate);
+$app->get(
+    __('/payment-types', 'routes'),
+    function ($request, $response) {
+    }
+)->setName('paymentTypes')->add($authenticate);

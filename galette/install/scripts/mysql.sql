@@ -304,6 +304,14 @@ CREATE TABLE galette_import_model (
   PRIMARY KEY (model_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+-- Table for payment types
+DROP TABLE IF EXISTS galette_paymenttypes;
+CREATE TABLE galette_paymenttypes (
+  type_id int(10) unsigned NOT NULL auto_increment,
+  type_name varchar(255) NOT NULL,
+  PRIMARY KEY (type_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
 -- table for database version
 DROP TABLE IF EXISTS galette_database;
 CREATE TABLE galette_database (
