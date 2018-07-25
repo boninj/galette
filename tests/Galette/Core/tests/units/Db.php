@@ -560,7 +560,7 @@ class Db extends atoum
         sort($expected);
 
         $this->array($tables)
-            ->hasSize(24)
+            ->hasSize(25)
             ->isIdenticalTo($expected);
     }
 
