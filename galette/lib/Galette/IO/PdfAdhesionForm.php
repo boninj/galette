@@ -231,7 +231,6 @@ class PdfAdhesionForm extends Pdf
                             ' name="' . $field_name . '"' .
                             ' value="' . $field_value['field_val'] . '"' .
                             '/>';
-                            ' value="' . $field_value['field_val'] . '"' .
                         break;
                     case DynamicField::LINE:
                         $value .= '<input type="text"' .
@@ -239,7 +238,6 @@ class PdfAdhesionForm extends Pdf
                             ' name="' . $field_name . '"' .
                             ' value="' . $field_value['field_val'] . '"' .
                             ' size="20" maxlength="30"/>';
-                            ' value="' . $field_value['field_val'] . '"' .
                         break;
                     case DynamicField::CHOICE:
                         $choice_values = $dynamic_fields[$field_id]->getValues();
@@ -259,7 +257,7 @@ class PdfAdhesionForm extends Pdf
                     case DynamicField::DATE:
                         $value .= '<input type="text" name="' .
                             $field_name . '" value="' .
-                            $field_value . '" />';
+                            $field_value['field_val'] . '" />';
                         break;
                     case DynamicField::BOOLEAN:
                         $value .= '<input type="checkbox"' .
