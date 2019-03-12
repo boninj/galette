@@ -97,7 +97,7 @@ class Db
             } elseif ($_type_db === self::PGSQL) {
                 $_type = 'Pdo_Pgsql';
             } else {
-                throw new \Exception;
+                throw new \Exception("Type $_type_db not known (dsn: $_user_db@$_host_db(:$_port_db)/$_name_db)");
             }
 
             $this->type_db = $_type_db;
@@ -175,7 +175,7 @@ class Db
     {
         try {
             if ($check_table === true) {
-                $exists = count($this->getTables(PREFIX_DB . 'database'));
+                $exists = count($this->getTables(PREFIX_DB . 'database')) === 1;
             } else {
                 $exists = true;
             }
@@ -578,7 +578,7 @@ class Db
         } catch (\Exception $e) {
             $this->connection->rollBack();
             Analog::log(
-                'An error occured while converting to utf table ' .
+                'An error occurred while converting to utf table ' .
                 $table . ' (' . $e->getMessage() . ')',
                 Analog::ERROR
             );
@@ -674,7 +674,7 @@ class Db
             }
         } catch (\Exception $e) {
             Analog::log(
-                'An error occured while converting contents to UTF-8 for table ' .
+                'An error occurred while converting contents to UTF-8 for table ' .
                 $table . ' (' . $e->getMessage() . ')',
                 Analog::ERROR
             );

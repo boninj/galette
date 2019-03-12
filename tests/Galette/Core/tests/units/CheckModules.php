@@ -63,14 +63,12 @@ class CheckModules extends atoum
         $checks = new \Galette\Core\CheckModules();
         $this->boolean($checks->isValid())->isTrue();
         $this->integer(count($checks->getGoods()))
-            ->isLessThanOrEqualTo(8)
+            ->isLessThanOrEqualTo(9)
             ->isGreaterThanOrEqualTo(6);
         $this->array($checks->getMissings())
             ->isEmpty();
         $this->array($checks->getShoulds())
-            ->isEmpty();
-        $this->integer(count($checks->getMays()))
-            ->isLessThanOrEqualTo(2);
+            ->isEmpty(2);
         $this->boolean($checks->isGood('mbstring'))
             ->isTrue();
     }
@@ -90,15 +88,13 @@ class CheckModules extends atoum
                     ->then
                         ->array($checks->getGoods())
                             ->hasSize(0)
-                        ->array($checks->getMays())
-                            ->hasSize(2)
                         ->array($checks->getShoulds())
-                            ->hasSize(2)
+                            ->hasSize(4)
                         ->array($checks->getMissings())
                             ->hasSize(5)
                         ->string($checks->toHtml())
                             ->notContains('icon-valid.png')
-                            ->hasLength(811);
+                            ->hasLength(1027);
     }
 
     /**
@@ -113,6 +109,6 @@ class CheckModules extends atoum
         $html = $checks->toHtml();
         $this->string($html)
             ->notContains('icon-invalid.png')
-            ->hasLength(908);
+            ->length->isGreaterThanOrEqualTo(908);
     }
 }

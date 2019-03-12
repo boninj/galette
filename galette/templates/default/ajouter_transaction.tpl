@@ -1,8 +1,8 @@
 {extends file="page.tpl"}
 
 {block name="content"}
-{if isset($adh_options)}
-        <form action="{if $transaction->id}{path_for name="transaction" data=["action" => {_T string="edit" domain="routes"}, "id" => $transaction->id]}{else}{path_for name="transaction" data=["action" => {_T string="add" domain="routes"}]}{/if}" method="post">
+{if isset($members.list)}
+        <form action="{if $transaction->id}{path_for name="transaction" data=["action" => "edit", "id" => $transaction->id]}{else}{path_for name="transaction" data=["action" => "add"]}{/if}" method="post">
         <div class="bigtable">
             <fieldset class="cssform">
                 <legend class="ui-state-active ui-corner-top">{_T string="Transaction details"}</legend>
@@ -12,11 +12,11 @@
                 </p>
                 <p>
                     <label for="id_adh" class="bline" >{_T string="Originator:"}</label>
-                    <select name="id_adh" id="id_adh"{if $required.id_adh eq 1} required="required"{/if}>
+                    <select name="id_adh" id="id_adh" class="nochosen"{if $required.id_adh eq 1} required="required"{/if}>
     {if !$transaction->member}
                         <option>{_T string="-- select a name --"}</option>
     {/if}
-    {foreach $adh_options as $k=>$v}
+    {foreach $members.list as $k=>$v}
                             <option value="{$k}"{if $transaction->member == $k} selected="selected"{/if}>{$v}</option>
     {/foreach}
                     </select>
@@ -33,15 +33,17 @@
                 <p>
                     <span class="bline tooltip" title="{_T string="Select a contribution type to create for dispatch transaction"}">{_T string="Dispatch type:"}</span>
                     <span class="tip">{_T string="Select a contribution type to create for dispatch transaction"}</span>
-                    <input type="radio" name="contrib_type" id="contrib_type_fee" value="{_T string="fee" domain="routes"}"/> <label for="contrib_type_fee">{_T string="Membership fee"}</label>
-                    <input type="radio" name="contrib_type" id="contrib_type_donation" value="{_T string="donation" domain="routes"}"/> <label for="contrib_type_donation">{_T string="Donation"}</label>
+                    <input type="radio" name="contrib_type" id="contrib_type_fee" value="fee" checked="checked"/> <label for="contrib_type_fee">{_T string="Membership fee"}</label>
+                    <input type="radio" name="contrib_type" id="contrib_type_donation" value="donation"/> <label for="contrib_type_donation">{_T string="Donation"}</label>
                 </p>
     {/if}
             </fieldset>
         </div>
     {include file="edit_dynamic_fields.tpl" object=$transaction}
         <div class="button-container">
-            <input id="btnsave" type="submit" value="{_T string="Save"}"/>
+            <button type="submit" name="valid" class="action">
+                <i class="fas fa-save fa-fw"></i> {_T string="Save"}
+            </button>
             <input type="hidden" name="trans_id" value="{$transaction->id}"/>
             <input type="hidden" name="valid" value="1"/>
         </div>
@@ -52,9 +54,28 @@
             <caption>
                 {_T string="Attached contributions"}
                 {if $transaction->getMissingAmount() > 0}
-                    <a href="{path_for name="contribution" data=["type" => {_T string="fee" domain="routes"}, "action" => {_T string="add" domain="routes"}]}?trans_id={$transaction->id}" class="button notext fright" id="btnadd" title="{_T string="Create a new fee that will be attached to the current transaction"}">{_T string="New attached fee"}</a>
-                    <a href="{path_for name="contribution" data=["type" => {_T string="donation" domain="routes"}, "action" => {_T string="add" domain="routes"}]}?trans_id={$transaction->id}" class="button notext fright" id="btnadddon" title="{_T string="Create a new donation that will be attached to the current transaction"}">{_T string="New attached donation"}</a>
-                    <a href="#" class="button notext fright" id="memberslist" title="{_T string="Select an existing contribution in the database, and attach it to the current transaction"}">{_T string="Select existing contribution"}</a>
+                    <a
+                        href="{path_for name="contribution" data=["type" => "fee", "action" => "add"]}?trans_id={$transaction->id}"
+                        class="button fright tooltip"
+                    >
+                        <i class="fas fa-user-check"></i>
+                        <span class="sr-only">{_T string="Create a new fee that will be attached to the current transaction"}</span>
+                    </a>
+                    <a
+                        href="{path_for name="contribution" data=["type" => "donation", "action" => "add"]}?trans_id={$transaction->id}"
+                        class="button fright tooltip"
+                    >
+                        <i class="fas fa-gift"></i>
+                        <span class="sr-only">{_T string="Create a new donation that will be attached to the current transaction"}</span>
+                    </a>
+                    <a
+                        href="#"
+                        class="button fright tooltip"
+                        id="contribslist"
+                    >
+                        <i class="fas fa-cookie"></i>
+                        <span class="sr-only">{_T string="Select an existing contribution in the database, and attach it to the current transaction"}</span>
+                    </a>
                 {/if}
             </caption>
             <thead>
@@ -76,12 +97,14 @@
             </thead>
             <tfoot>
                 <tr>
-                    <th class="right bgfree" colspan="{if $login->isAdmin() or $login->isStaff()}8{else}6{/if}">{_T string="Dispatched amount:"}</th>
+                    <th class="right bgfree" colspan="{if $login->isAdmin() or $login->isStaff()}7{else}5{/if}">{_T string="Dispatched amount:"}</th>
                     <th class="right bgfree">{$transaction->getDispatchedAmount()}</th>
+                    <td></td>
                 </tr>
                 <tr>
-                    <th class="right bgfree" colspan="{if $login->isAdmin() or $login->isStaff()}8{else}6{/if}">{_T string="Not dispatched amount:"}</th>
+                    <th class="right bgfree" colspan="{if $login->isAdmin() or $login->isStaff()}7{else}5{/if}">{_T string="Not dispatched amount:"}</th>
                     <th class="right bgfree">{$transaction->getMissingAmount()}</th>
+                    <td></td>
                 </tr>
             </tfoot>
             <tbody>
@@ -102,9 +125,13 @@
                     <td class="{$cclass}">{$contrib->type->libelle}</td>
                     <td class="{$cclass} nowrap right">{$contrib->amount}</td>
             {if $login->isAdmin() or $login->isStaff()}
-                    <td class="{$cclass}">
-                        <a href="{path_for name="detach_contribution" data=["id" => $transaction->id, "cid" => $contrib->id]}">
-                            <img src="{base_url}/{$template_subdir}images/delete.png" alt="{_T string="Detach"}" width="16" height="16" title="{_T string="Detach contribution from this transaction"}"/>
+                    <td class="{$cclass} actions_row">
+                        <a
+                            href="{path_for name="detach_contribution" data=["id" => $transaction->id, "cid" => $contrib->id]}"
+                            class="delete tooltip"
+                        >
+                            <i class="fas fa-trash"></i>
+                            <span class="sr-only">{_T string="Detach contribution from this transaction"}</span>
                         </a>
                     </td>
             {/if}
@@ -121,7 +148,7 @@
         <p>
             {_T string="Unfortunately, there is no member in your database yet,"}
             <br/>
-            <a href="{path_for name="editmember" data=["action" => {_T string="add" domain="routes"}]}">{_T string="please create a member"}</a>
+            <a href="{path_for name="editmember" data=["action" => "add"]}">{_T string="please create a member"}</a>
         </p>
     </div>
 {/if}
@@ -129,11 +156,12 @@
 
 {block name="javascripts"}
     <script type="text/javascript">
+    {include file="js_chosen_adh.tpl"}
         $(function(){
 {if $transaction->id}
-            $('#memberslist').click(function(){
+            $('#contribslist').click(function(){
                 $.ajax({
-                    url: '{path_for name="contributions" data=["type" => {_T string="contributions" domain="routes"}]}',
+                    url: '{path_for name="contributions" data=["type" => "contributions"]}',
                     type: "GET",
                     data: {
                         ajax: true,
@@ -144,7 +172,7 @@
                         _contribs_dialog(res);
                     },
                     error: function() {
-                        alert("{_T string="An error occured displaying members interface :("}");
+                        alert("{_T string="An error occurred displaying members interface :("}");
                     }
                 });
                 return false;
@@ -186,7 +214,7 @@
                             _contribs_ajax_mapper(res);
                         },
                         error: function() {
-                            alert("{_T string="An error occured displaying contributions :("}");
+                            alert("{_T string="An error occurred displaying contributions :("}");
                         }
                     });
                     return false;
@@ -200,7 +228,7 @@
                 $('.pages a').bind({
                     click: function(){
                         $.ajax({
-                            url: '{path_for name="contributions" data=["type" => {_T string="contributions" domain="routes"}]}' + this.href.substring(this.href.indexOf('?')) + "&ajax=true",
+                            url: '{path_for name="contributions" data=["type" => "contributions"]}' + this.href.substring(this.href.indexOf('?')) + "&ajax=true",
                             type: "GET",
                             {include file="js_loader.tpl"},
                             success: function(res){
@@ -208,7 +236,7 @@
                                 _contribs_ajax_mapper(res);
                             },
                             error: function() {
-                                alert("{_T string="An error occured displaying contributions :("}");
+                                alert("{_T string="An error occurred displaying contributions :("}");
                             },
                         });
                         return false;
@@ -226,9 +254,7 @@
                 changeMonth: true,
                 changeYear: true,
                 showOn: 'button',
-                buttonImage: '{base_url}/{$template_subdir}images/calendar.png',
-                buttonImageOnly: true,
-                buttonText: '{_T string="Select a date" escape="js"}'
+                buttonText: '<i class="far fa-calendar-alt"></i> <span class="sr-only">{_T string="Select a date" escape="js"}</span>'
             });
         });
     </script>

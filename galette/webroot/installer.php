@@ -42,6 +42,17 @@ use Analog\Analog;
 //set a flag saying we work from installer
 //that way, in galette.inc.php, we'll only include relevant parts
 $installer = true;
+define('GALETTE_ROOT', __DIR__ . '/../');
+
+// check PHP modules
+require_once GALETTE_ROOT . '/vendor/autoload.php';
+require_once GALETTE_ROOT . 'config/versions.inc.php';
+
+if (version_compare(PHP_VERSION, GALETTE_PHP_MIN, '<') || !extension_loaded('intl')) {
+    header('location: compat_test.php');
+    die(1);
+}
+
 //specific logfile for installer
 $logfile = 'galette_install';
 define('GALETTE_BASE_PATH', '../');
@@ -53,21 +64,17 @@ session_start();
 $session_name = 'galette_install_' . str_replace('.', '_', GALETTE_VERSION);
 $session = &$_SESSION['galette'][$session_name];
 
-if (isset($session['lang'])) {
-    $i18n = unserialize($session['lang']);
-    if (!$i18n->getId()) {
-        $i18n = new Galette\Core\I18n();
-    }
-} else {
-    $i18n = new Galette\Core\I18n();
-}
+$app = new \Slim\App(
+    array(
+        'templates.path'    => GALETTE_ROOT . 'templates/default/',
+        'mode'              => 'INSTALL'
+    )
+);
+require_once '../includes/dependencies.php';
 
 if (isset($_GET['pref_lang'])) {
     $i18n->changeLanguage($_GET['pref_lang']);
 }
-$session['lang'] = serialize($i18n);
-
-require_once '../includes/i18n.inc.php';
 
 if (isset($_POST['abort_btn'])) {
     if (isset($session[md5(GALETTE_ROOT)])) {

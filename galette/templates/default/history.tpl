@@ -36,7 +36,13 @@
             <input type="submit" name="clear_filter" class="inline" value="{_T string="Clear filter"}"/>
         </div>
         <div class="infoline">
-            <a id="histreset" class="button delete" href="{path_for name="flushHistory"}">{_T string="Flush the logs"}</a>
+            <a
+                class="button delete"
+                href="{path_for name="flushHistory"}"
+            >
+                <i class="fas fa-trash"></i>
+                {_T string="Flush the logs"}
+            </a>
             {$history->getCount()} {if $history->getCount() != 1}{_T string="entries"}{else}{_T string="entry"}{/if}
             <div class="fright">
                 <label for="nbshow">{_T string="Records per page:"}</label>
@@ -53,7 +59,7 @@
                 <tr>
                     <th class="small_head">#</th>
                     <th class="left date_row">
-                        <a href="{path_for name="history" data=["option" => {_T string="order" domain="routes"}, "value" => "Galette\Filters\HistoryList::ORDERBY_DATE"|constant]}">
+                        <a href="{path_for name="history" data=["option" => "order", "value" => "Galette\Filters\HistoryList::ORDERBY_DATE"|constant]}">
                             {_T string="Date"}
                             {if $history->filters->orderby eq constant('Galette\Filters\HistoryList::ORDERBY_DATE')}
                                 {if $history->filters->ordered eq constant('Galette\Filters\HistoryList::ORDER_ASC')}
@@ -65,7 +71,7 @@
                         </a>
                     </th>
                     <th class="left date_row">
-                        <a href="{path_for name="history" data=["option" => {_T string="order" domain="routes"}, "value" => "Galette\Filters\HistoryList::ORDERBY_IP"|constant]}">
+                        <a href="{path_for name="history" data=["option" => "order", "value" => "Galette\Filters\HistoryList::ORDERBY_IP"|constant]}">
                             {_T string="IP"}
                             {if $history->filters->orderby eq constant('Galette\Filters\HistoryList::ORDERBY_IP')}
                                 {if $history->filters->ordered eq constant('Galette\Filters\HistoryList::ORDER_ASC')}
@@ -77,7 +83,7 @@
                         </a>
                     </th>
                     <th class="left date_row">
-                        <a href="{path_for name="history" data=["option" => {_T string="order" domain="routes"}, "value" => "Galette\Filters\HistoryList::ORDERBY_USER"|constant]}">
+                        <a href="{path_for name="history" data=["option" => "order", "value" => "Galette\Filters\HistoryList::ORDERBY_USER"|constant]}">
                             {_T string="User"}
                             {if $history->filters->orderby eq constant('Galette\Filters\HistoryList::ORDERBY_USER')}
                                 {if $history->filters->ordered eq constant('Galette\Filters\HistoryList::ORDER_ASC')}
@@ -89,7 +95,7 @@
                         </a>
                     </th>
                     <th class="left username_row">
-                        <a href="{path_for name="history" data=["option" => {_T string="order" domain="routes"}, "value" => "Galette\Filters\HistoryList::ORDERBY_ACTION"|constant]}">
+                        <a href="{path_for name="history" data=["option" => "order", "value" => "Galette\Filters\HistoryList::ORDERBY_ACTION"|constant]}">
                             {_T string="Action"}
                             {if $history->filters->orderby eq constant('Galette\Filters\HistoryList::ORDERBY_ACTION')}
                                 {if $history->filters->ordered eq constant('Galette\Filters\HistoryList::ORDER_ASC')}
@@ -161,9 +167,7 @@
                 changeMonth: true,
                 changeYear: true,
                 showOn: 'button',
-                buttonImage: '{base_url}/{$template_subdir}images/calendar.png',
-                buttonImageOnly: true,
-                buttonText: '{_T string="Select a date" escape="js"}'
+                buttonText: '<i class="far fa-calendar-alt"></i> <span class="sr-only">{_T string="Select a date" escape="js"}</span>'
             });
         </script>
 {/block}

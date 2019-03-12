@@ -78,6 +78,8 @@ class PdfAdhesionForm
      */
     public function __construct(Adherent $adh = null, Db $zdb, Preferences $prefs)
     {
+        global $login;
+
         $this->adh = $adh;
         $this->prefs = $prefs;
 
@@ -90,6 +92,7 @@ class PdfAdhesionForm
         $model->setPatterns(
             array(
                 'adh_title'         => '/{TITLE_ADH}/',
+                'adh_id'            => '/{ID_ADH}/',
                 'adh_name'          => '/{NAME_ADH}/',
                 'adh_last_name'     => '/{LAST_NAME_ADH}/',
                 'adh_first_name'    => '/{FIRST_NAME_ADH}/',
@@ -98,7 +101,7 @@ class PdfAdhesionForm
                 'adh_birth_date'    => '/{ADH_BIRTH_DATE}/',
                 'adh_birth_place'   => '/{ADH_BIRTH_PLACE}/',
                 'adh_profession'    => '/{PROFESSION_ADH}/',
-                'adh_company_name'  => '/{COMPANY_NAME_ADH}/',
+                'adh_company'       => '/{COMPANY_ADH}/',
                 'adh_address'       => '/{ADDRESS_ADH}/',
                 'adh_zip'           => '/{ZIP_ADH}/',
                 'adh_town'          => '/{TOWN_ADH}/',
@@ -147,6 +150,7 @@ class PdfAdhesionForm
             $model->setReplacements(
                 array(
                     'adh_title'         => $adh->stitle,
+                    'adh_id'            => $adh->id,
                     'adh_name'          => $adh->sfullname,
                     'adh_last_name'     => $adh->surname,
                     'adh_first_name'    => $adh->name,
@@ -155,7 +159,7 @@ class PdfAdhesionForm
                     'adh_birth_date'    => $adh->birthdate,
                     'adh_birth_place'   => $adh->birth_place,
                     'adh_profession'    => $adh->job,
-                    'adh_company_name'  => $adh->company_name,
+                    'adh_company'       => $adh->company_name,
                     'adh_address'       => $address,
                     'adh_zip'           => $adh->zipcode,
                     'adh_town'          => $adh->town,
@@ -172,7 +176,7 @@ class PdfAdhesionForm
 
         /** the list of all dynamic fields */
         $fields =
-            new \Galette\Repository\DynamicFieldsSet($zdb);
+            new \Galette\Repository\DynamicFieldsSet($zdb, $login);
         $dynamic_fields = $fields->getList('adh');
 
         foreach ($dynamic_patterns as $pattern) {

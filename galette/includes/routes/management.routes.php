@@ -57,15 +57,17 @@ use Galette\Entity\PdfModel;
 use Galette\Repository\PdfModels;
 use Galette\Entity\Title;
 use Galette\Repository\Titles;
+use Galette\Repository\PaymentTypes;
 use Galette\Entity\Texts;
 use Galette\Core\Install;
 use Zend\Db\Adapter\Adapter;
 use Galette\Core\PluginInstall;
 use Galette\Entity\Status;
+use Galette\Entity\PaymentType;
 
 //galette's dashboard
 $app->get(
-    __('/dashboard', 'routes'),
+    '/dashboard',
     function ($request, $response, $args = []) {
         $news = new News($this->preferences->pref_rss_url);
 
@@ -106,7 +108,7 @@ $app->get(
 
 //preferences page
 $app->get(
-    __('/preferences', 'routes'),
+    '/preferences',
     function ($request, $response) {
 
         // flagging required fields
@@ -188,7 +190,12 @@ $app->get(
                 'statuts'               => $s->getList(),
                 'require_tabs'          => true,
                 'color_picker'          => true,
-                'require_dialog'        => true
+                'require_dialog'        => true,
+                'accounts_options'      => array(
+                    Members::ALL_ACCOUNTS       => _T("All accounts"),
+                    Members::ACTIVE_ACCOUNT     => _T("Active accounts"),
+                    Members::INACTIVE_ACCOUNT   => _T("Inactive accounts")
+                )
             )
         );
         return $response;
@@ -197,7 +204,7 @@ $app->get(
 
 //preferences procedure
 $app->post(
-    __('/preferences', 'routes'),
+    '/preferences',
     function ($request, $response) {
         $error_detected = [];
         $warning_detected = [];
@@ -454,7 +461,7 @@ $app->post(
                 }
                 //once all values has been updated, we can store them
                 if (!$this->preferences->store()) {
-                    $error_detected[] = _T("An SQL error has occured while storing preferences. Please try again, and contact the administrator if the problem persists.");
+                    $error_detected[] = _T("An SQL error has occurred while storing preferences. Please try again, and contact the administrator if the problem persists.");
                 } else {
                     $this->flash->addMessage(
                         'success_detected',
@@ -558,7 +565,7 @@ $app->post(
 )->setName('store-preferences')->add($authenticate);
 
 $app->get(
-    __('/test/email', 'routes'),
+    '/test/email',
     function ($request, $response) {
         $sent = false;
         if (!$this->preferences->pref_mail_method > GaletteMail::METHOD_DISABLED) {
@@ -623,7 +630,7 @@ $app->get(
 
 //charts
 $app->get(
-    __('/charts', 'routes'),
+    '/charts',
     function ($request, $response) {
         $charts = new Charts(
             array(
@@ -651,7 +658,7 @@ $app->get(
 
 //plugins
 $app->get(
-    __('/plugins', 'routes'),
+    '/plugins',
     function ($request, $response) {
         $plugins = $this->get('plugins');
 
@@ -675,14 +682,13 @@ $app->get(
 
 //plugins (de)activation
 $app->get(
-    __('/plugins', 'routes') .
-    '/{action:' . __('activate', 'routes') . '|' . __('deactivate', 'routes') .'}/{module_id}',
+    '/plugins/{action:activate|deactivate}/{module_id}',
     function ($request, $response, $args) {
         if (GALETTE_MODE !== 'DEMO') {
             $plugins = $this->get('plugins');
             $action = $args['action'];
             $reload_plugins = false;
-            if ($action == __('activate', 'routes')) {
+            if ($action == 'activate') {
                 try {
                     $plugins->activateModule($args['module_id']);
                     $this->flash->addMessage(
@@ -700,7 +706,7 @@ $app->get(
                         $e->getMessage()
                     );
                 }
-            } elseif ($args['action'] == __('deactivate', 'routes')) {
+            } elseif ($args['action'] == 'deactivate') {
                 try {
                     $plugins->deactivateModule($args['module_id']);
                     $this->flash->addMessage(
@@ -722,7 +728,7 @@ $app->get(
 
             //If some plugins have been (de)activated, we have to reload
             if ($reload_plugins === true) {
-                $plugins->loadModules($this->preferences, GALETTE_PLUGINS_PATH, $this->i18n->getFileName());
+                $plugins->loadModules($this->preferences, GALETTE_PLUGINS_PATH, $this->i18n->getLongID());
             }
         }
 
@@ -734,7 +740,7 @@ $app->get(
 
 $app->map(
     ['GET', 'POST'],
-    __('/plugins', 'routes') . __('/initialize-database', 'routes') . '/{id}',
+    '/plugins/initialize-database/{id}',
     function ($request, $response, $args) {
         if (GALETTE_MODE === 'DEMO') {
             Analog::log(
@@ -938,8 +944,7 @@ $app->map(
 
 //galette logs
 $app->get(
-    __('/logs', 'routes') . '[/{option:' . __('page', 'routes') .'|' .
-        __('order', 'routes') .'}/{value}]',
+    '/logs[/{option:page|order}/{value}]',
     function ($request, $response, $args = []) {
         $option = null;
         if (isset($args['option'])) {
@@ -962,10 +967,10 @@ $app->get(
 
         if ($option !== null) {
             switch ($option) {
-                case __('page', 'routes'):
+                case 'page':
                     $filters->current_page = (int)$value;
                     break;
-                case __('order', 'routes'):
+                case 'order':
                     $filters->orderby = $value;
                     break;
             }
@@ -998,7 +1003,7 @@ $app->get(
 )->add($authenticate);
 
 $app->post(
-    __('/logs', 'routes') . __('/filter', 'routes'),
+    '/logs/filter',
     function ($request, $response, $args) {
         $post = $request->getParsedBody();
         $error_detected = [];
@@ -1062,7 +1067,7 @@ $app->post(
 )->add($authenticate);
 
 $app->get(
-    __('/logs', 'routes') . __('/flush', 'routes'),
+    '/logs/flush',
     function ($request, $response) {
         $data = [
             'redirect_uri'  => $this->router->pathFor('history')
@@ -1085,7 +1090,7 @@ $app->get(
 )->setName('flushHistory')->add($authenticate);
 
 $app->post(
-    __('/logs', 'routes') . __('/flush', 'routes'),
+    '/logs/flush',
     function ($request, $response) {
         $post = $request->getParsedBody();
         $ajax = isset($post['ajax']) && $post['ajax'] === 'true';
@@ -1116,13 +1121,13 @@ $app->post(
             } catch (\Exception $e) {
                 $this->zdb->connection->rollBack();
                 Analog::log(
-                    'An error occured flushing logs | ' . $e->getMessage(),
+                    'An error occurred flushing logs | ' . $e->getMessage(),
                     Analog::ERROR
                 );
 
                 $this->flash->addMessage(
                     'error_detected',
-                    _T('An error occured trying to flush logs :(')
+                    _T('An error occurred trying to flush logs :(')
                 );
             }
         }
@@ -1143,8 +1148,7 @@ $app->post(
 
 //mailings management
 $app->get(
-    __('/mailings', 'routes') . '[/{option:' . __('page', 'routes') .'|' .
-        __('order', 'routes') .'|' . __('reset', 'routes') .'}/{value}]',
+    '/mailings[/{option:page|order|reset}/{value}]',
     function ($request, $response, $args = []) {
         $option = null;
         if (isset($args['option'])) {
@@ -1170,13 +1174,13 @@ $app->get(
 
         if ($option !== null) {
             switch ($option) {
-                case __('page', 'routes'):
+                case 'page':
                     $filters->current_page = (int)$value;
                     break;
-                case __('order', 'routes'):
+                case 'order':
                     $filters->orderby = $value;
                     break;
-                case __('reset', 'routes'):
+                case 'reset':
                     $mailhist->clean();
                     //reinitialize object after flush
                     $filters = new MailingsList();
@@ -1212,7 +1216,7 @@ $app->get(
 )->add($authenticate);
 
 $app->post(
-    __('/mailings', 'routes') . __('/filter', 'routes'),
+    '/mailings/filter',
     function ($request, $response, $args) {
         $post = $request->getParsedBody();
         $error_detected = [];
@@ -1281,7 +1285,7 @@ $app->post(
 )->add($authenticate);
 
 $app->get(
-    __('/mailings', 'routes') . __('/remove', 'routes') . '/{id:\d+}',
+    '/mailings/remove' . '/{id:\d+}',
     function ($request, $response, $args) {
         $data = [
             'id'            => $args['id'],
@@ -1311,7 +1315,7 @@ $app->get(
 )->setName('removeMailing')->add($authenticate);
 
 $app->post(
-    __('/mailings', 'routes') . __('/remove', 'routes') . '/{id:\d+}',
+    '/mailings/remove/{id:\d+}',
     function ($request, $response, $args) {
         $post = $request->getParsedBody();
         $ajax = isset($post['ajax']) && $post['ajax'] === 'true';
@@ -1339,13 +1343,13 @@ $app->post(
             } catch (\Exception $e) {
                 $this->zdb->connection->rollBack();
                 Analog::log(
-                    'An error occured deleting mailing | ' . $e->getMessage(),
+                    'An error occurred deleting mailing | ' . $e->getMessage(),
                     Analog::ERROR
                 );
 
                 $this->flash->addMessage(
                     'error_detected',
-                    _T('An error occured trying to delete mailing :(')
+                    _T('An error occurred trying to delete mailing :(')
                 );
 
                 $success = false;
@@ -1368,7 +1372,7 @@ $app->post(
 
 //galette exports
 $app->get(
-    __('/export', 'routes'),
+    '/export',
     function ($request, $response) {
         $csv = new CsvOut();
 
@@ -1396,7 +1400,7 @@ $app->get(
 )->add($authenticate);
 
 $app->get(
-    '/{type:' . __('export', 'routes') . '|' . __('import', 'routes') . '}' . __('/remove', 'routes') .'/{file}',
+    '/{type:export|import}/remove/{file}',
     function ($request, $response, $args) {
         $data = [
             'id'            => $args['id'],
@@ -1430,7 +1434,7 @@ $app->get(
 )->setName('removeCsv')->add($authenticate);
 
 $app->post(
-    '/{type:' . __('export', 'routes') . '|' . __('import', 'routes') . '}' . __('/remove', 'routes') .'/{file}',
+    '/{type:export|import}/remove/{file}',
     function ($request, $response, $args) {
         $post = $request->getParsedBody();
         $ajax = isset($post['ajax']) && $post['ajax'] === 'true';
@@ -1446,7 +1450,7 @@ $app->post(
                 _T("Removal has not been confirmed!")
             );
         } else {
-            $csv = $args['type'] === __('export', 'routes') ?
+            $csv = $args['type'] === 'export' ?
                 new CsvOut() :
                 new CsvIn($this->zdb);
             $res = $csv->remove($args['file']);
@@ -1488,7 +1492,7 @@ $app->post(
 )->setName('doRemoveCsv')->add($authenticate);
 
 $app->post(
-    __('/export', 'routes'),
+    '/export',
     function ($request, $response) {
         $post = $request->getParsedBody();
         $csv = new CsvOut();
@@ -1551,7 +1555,7 @@ $app->post(
                             str_replace(
                                 '%export',
                                 $pn,
-                                _T("An error occured running parameted export '%export'.")
+                                _T("An error occurred running parameted export '%export'.")
                             )
                         );
                         break;
@@ -1561,7 +1565,7 @@ $app->post(
                             str_replace(
                                 '%export',
                                 $pn,
-                                _T("An error occured running parameted export '%export'. Please check the logs.")
+                                _T("An error occurred running parameted export '%export'. Please check the logs.")
                             )
                         );
                         break;
@@ -1578,7 +1582,7 @@ $app->post(
 
         if (count($written)) {
             foreach ($written as $ex) {
-                $path = $this->router->pathFor('getCsv', ['type' => __('export', 'routes'), 'file' => $ex['file']]);
+                $path = $this->router->pathFor('getCsv', ['type' => 'export', 'file' => $ex['file']]);
                 $this->flash->addMessage(
                     'written_exports',
                     '<a href="' . $path . '">' . $ex['name'] . ' (' . $ex['file'] . ')</a>'
@@ -1593,14 +1597,14 @@ $app->post(
 )->setName('doExport')->add($authenticate);
 
 $app->get(
-    '/{type:' . __('export', 'routes') . '|' . __('import', 'routes') . '}' . __('/get', 'routes') . '/{file}',
+    '/{type:export|import}/get/{file}',
     function ($request, $response, $args) {
         $filename = $args['file'];
 
         //Exports main contain user confidential data, they're accessible only for
         //admins or staff members
         if ($this->login->isAdmin() || $this->login->isStaff()) {
-            $filepath = $args['type'] === __('export', 'routes') ?
+            $filepath = $args['type'] === 'export' ?
                 CsvOut::DEFAULT_DIRECTORY :
                 CsvIn::DEFAULT_DIRECTORY;
             $filepath .= $filename;
@@ -1634,7 +1638,7 @@ $app->get(
 )->setName('getCsv')->add($authenticate);
 
 $app->get(
-    __('/import', 'routes'),
+    '/import',
     function ($request, $response) {
         $csv = new CsvIn($this->zdb);
         $existing = $csv->getExisting();
@@ -1657,7 +1661,7 @@ $app->get(
 )->setName('import')->add($authenticate);
 
 $app->post(
-    __('/import', 'routes'),
+    '/import',
     function ($request, $response) {
         $csv = new CsvIn($this->zdb);
         $post = $request->getParsedBody();
@@ -1688,7 +1692,7 @@ $app->post(
             } else {
                 $this->flash->addMessage(
                     'error_detected',
-                    _T("An error occured importing the file :(")
+                    _T("An error occurred importing the file :(")
                 );
             }
 
@@ -1713,7 +1717,7 @@ $app->post(
 )->setName('doImport')->add($authenticate);
 
 $app->post(
-    __('/import/upload', 'routes'),
+    '/import/upload',
     function ($request, $response) {
         $csv = new CsvIn($this->zdb);
         if (isset($_FILES['new_file'])) {
@@ -1765,7 +1769,7 @@ $app->post(
 )->setname('uploadImportFile')->add($authenticate);
 
 $app->get(
-    __('/import/model', 'routes'),
+    '/import/model',
     function ($request, $response) {
         $model = new ImportModel();
         $model->load();
@@ -1815,7 +1819,7 @@ $app->get(
 )->setName('importModel')->add($authenticate);
 
 $app->get(
-    __('/import/model/get', 'routes'),
+    '/import/model/get',
     function ($request, $response) {
         $model = new ImportModel();
         $model->load();
@@ -1852,7 +1856,7 @@ $app->get(
 )->setName('getImportModel')->add($authenticate);
 
 $app->post(
-    __('/import/model/store', 'routes'),
+    '/import/model/store',
     function ($request, $response) {
         $model = new ImportModel();
         $model->load();
@@ -1878,7 +1882,7 @@ $app->post(
 )->setName('storeImportModel')->add($authenticate);
 
 $app->get(
-    __('/models/pdf', 'routes'),
+    '/models/pdf',
     function ($request, $response) {
         $id = 1;
         if (isset($_GET['id'])) {
@@ -1934,7 +1938,7 @@ $app->get(
 )->setName('pdfModels')->add($authenticate);
 
 $app->post(
-    __('/models/pdf', 'routes'),
+    '/models/pdf',
     function ($request, $response) {
         $post = $request->getParsedBody();
         $type = null;
@@ -1995,7 +1999,7 @@ $app->post(
 )->setName('pdfModels')->add($authenticate);
 
 $app->get(
-    __('/titles', 'routes'),
+    '/titles',
     function ($request, $response) {
 
         $titles = Titles::getList($this->zdb);
@@ -2015,7 +2019,7 @@ $app->get(
 )->setName('titles')->add($authenticate);
 
 $app->post(
-    __('/titles', 'routes'),
+    '/titles',
     function ($request, $response) {
         $post = $request->getParsedBody();
         $title = new Title();
@@ -2052,7 +2056,7 @@ $app->post(
 )->setName('titles')->add($authenticate);
 
 $app->get(
-    __('/titles', 'routes') . __('/remove', 'routes') . '/{id:\d+}',
+    '/titles/remove/{id:\d+}',
     function ($request, $response, $args) {
         $data = [
             'id'            => $args['id'],
@@ -2083,7 +2087,7 @@ $app->get(
 )->setName('removeTitle')->add($authenticate);
 
 $app->post(
-    __('/titles', 'routes') . __('/remove', 'routes') . '/{id:\d+}',
+    '/titles/remove/{id:\d+}',
     function ($request, $response, $args) {
         $post = $request->getParsedBody();
         $ajax = isset($post['ajax']) && $post['ajax'] === 'true';
@@ -2118,7 +2122,7 @@ $app->post(
                         str_replace(
                             '%name',
                             $title->short,
-                            _T("An error occured removing title '%name' :(")
+                            _T("An error occurred removing title '%name' :(")
                         )
                     );
                 }
@@ -2152,7 +2156,7 @@ $app->post(
 )->setName('doRemoveTitle')->add($authenticate);
 
 $app->get(
-    __('/titles/edit', 'routes') . '/{id:\d+}',
+    '/titles/edit/{id:\d+}',
     function ($request, $response, $args) {
         $id = $args['id'];
         $title = new Title((int)$id);
@@ -2171,7 +2175,7 @@ $app->get(
 )->setname('editTitle')->add($authenticate);
 
 $app->post(
-    __('/titles/edit', 'routes') . '/{id:\d+}',
+    '/titles/edit/{id:\d+}',
     function ($request, $response, $args) {
         $id = $args['id'];
         $post = $request->getParsedBody();
@@ -2218,7 +2222,7 @@ $app->post(
 )->setname('editTitle')->add($authenticate);
 
 $app->get(
-    __('/texts', 'routes') . '[/{lang}/{ref}]',
+    '/texts[/{lang}/{ref}]',
     function ($request, $response, $args) {
         if (!isset($args['lang'])) {
             $args['lang'] = $this->preferences->pref_lang;
@@ -2254,7 +2258,7 @@ $app->get(
 )->setName('texts')->add($authenticate);
 
 $app->post(
-    __('/texts', 'routes') . __('/change', 'routes'),
+    '/texts/change',
     function ($request, $response) {
         $post = $request->getParsedBody();
         return $response
@@ -2273,7 +2277,7 @@ $app->post(
 )->setName('changeText')->add($authenticate);
 
 $app->post(
-    __('/texts', 'routes'),
+    '/texts',
     function ($request, $response) {
         $post = $request->getParsedBody();
         $texts = new Texts($this->texts_fields, $this->preferences, $this->router);
@@ -2318,7 +2322,7 @@ $app->post(
 )->setName('texts')->add($authenticate);
 
 $app->get(
-    '/{class:' . __('contributions-types', 'routes') . '|' . __('status', 'routes') . '}',
+    '/{class:contributions-types|status}',
     function ($request, $response, $args) {
         $className = null;
         $class = null;
@@ -2329,13 +2333,13 @@ $app->get(
         ];
 
         switch ($args['class']) {
-            case __('status', 'routes'):
+            case 'status':
                 $className = 'Status';
                 $class = new Galette\Entity\Status($this->zdb);
                 $params['page_title'] = _T("User statuses");
                 $params['non_staff_priority'] = Galette\Repository\Members::NON_STAFF_MEMBERS;
                 break;
-            case __('contributions-types', 'routes'):
+            case 'contributions-types':
                 $className = 'ContributionsTypes';
                 $class = new Galette\Entity\ContributionsTypes($this->zdb);
                 $params['page_title'] = _T("Contribution types");
@@ -2364,8 +2368,7 @@ $app->get(
 )->setName('entitleds')->add($authenticate);
 
 $app->get(
-    '/{class:' . __('contributions-types', 'routes') . '|' . __('status', 'routes') .
-        '}/{action:' . __('edit', 'routes') .'|' . __('add', 'routes') .'}[/{id:\d+}]',
+    '/{class:contributions-types|status}/{action:edit|add}[/{id:\d+}]',
     function ($request, $response, $args) {
         $className = null;
         $class = null;
@@ -2375,13 +2378,13 @@ $app->get(
         ];
 
         switch ($args['class']) {
-            case __('status', 'routes'):
+            case 'status':
                 $className = 'Status';
                 $class = new Galette\Entity\Status($this->zdb);
                 $params['page_title'] = _T("Edit status");
                 $params['non_staff_priority'] = Galette\Repository\Members::NON_STAFF_MEMBERS;
                 break;
-            case __('contributions-types', 'routes'):
+            case 'contributions-types':
                 $className = 'ContributionsTypes';
                 $class = new Galette\Entity\ContributionsTypes($this->zdb);
                 $params['page_title'] = _T("Edit contribution type");
@@ -2406,17 +2409,16 @@ $app->get(
 )->setName('editEntitled')->add($authenticate);
 
 $app->post(
-    '/{class:' . __('contributions-types', 'routes') . '|' . __('status', 'routes') .
-        '}/{action:' . __('edit', 'routes') . '|' . __('add', 'routes') . '}[/{id:\d+}]',
+    '/{class:contributions-types|status}/{action:edit|add}[/{id:\d+}]',
     function ($request, $response, $args) {
         $post = $request->getParsedBody();
         $class = null;
 
         switch ($args['class']) {
-            case __('status', 'routes'):
+            case 'status':
                 $class = new Galette\Entity\Status($this->zdb);
                 break;
-            case __('contributions-types', 'routes'):
+            case 'contributions-types':
                 $class = new Galette\Entity\ContributionsTypes($this->zdb);
                 break;
         }
@@ -2425,7 +2427,7 @@ $app->post(
         $field = trim($post[$class::$fields['third']]);
 
         $ret = null;
-        if ($args['action'] === __('add', 'routes')) {
+        if ($args['action'] === 'add') {
             $ret = $class->add($label, $field);
         } else {
             $oldlabel = $class->getLabel($args['id'], false);
@@ -2434,12 +2436,12 @@ $app->post(
 
         if ($ret !== true) {
             $msg_type = 'error_detected';
-            $msg = $args['action'] === __('add', 'routes') ?
+            $msg = $args['action'] === 'add' ?
                 _T("%type has not been added :(") :
                 _T("%type #%id has not been updated");
         } else {
             $msg_type = 'success_detected';
-            $msg = $args['action'] === __('add', 'routes') ?
+            $msg = $args['action'] === 'add' ?
                 _T("%type has been successfully added!") :
                 _T("%type #%id has been successfully updated!");
         }
@@ -2460,8 +2462,7 @@ $app->post(
 )->setName('editEntitled')->add($authenticate);
 
 $app->get(
-    '/{class:' . __('contributions-types', 'routes') . '|' . __('status', 'routes') .
-        '}' . __('/remove', 'routes') . '/{id:\d+}',
+    '/{class:contributions-types|status}/remove/{id:\d+}',
     function ($request, $response, $args) {
         $data = [
             'id'            => $args['id'],
@@ -2470,10 +2471,10 @@ $app->get(
 
         $class = null;
         switch ($args['class']) {
-            case __('status', 'routes'):
+            case 'status':
                 $class = new Galette\Entity\Status($this->zdb);
                 break;
-            case __('contributions-types', 'routes'):
+            case 'contributions-types':
                 $class = new Galette\Entity\ContributionsTypes($this->zdb);
                 break;
         }
@@ -2506,8 +2507,7 @@ $app->get(
 )->setName('removeEntitled')->add($authenticate);
 
 $app->post(
-    '/{class:' . __('contributions-types', 'routes') . '|' . __('status', 'routes') .
-        '}' . __('/remove', 'routes') . '/{id:\d+}',
+    '/{class:contributions-types|status}/remove/{id:\d+}',
     function ($request, $response, $args) {
         $post = $request->getParsedBody();
         $ajax = isset($post['ajax']) && $post['ajax'] === 'true';
@@ -2525,10 +2525,10 @@ $app->post(
         } else {
             $class = null;
             switch ($args['class']) {
-                case __('status', 'routes'):
+                case 'status':
                     $class = new Galette\Entity\Status($this->zdb);
                     break;
-                case __('contributions-types', 'routes'):
+                case 'contributions-types':
                     $class = new Galette\Entity\ContributionsTypes($this->zdb);
                     break;
             }
@@ -2554,7 +2554,7 @@ $app->post(
                             $errors[] = str_replace(
                                 ['%type', '%id'],
                                 [$class->getI18nType(), $args['id']],
-                                _T("An error occured trying to remove %type #%id")
+                                _T("An error occurred trying to remove %type #%id")
                             );
                         }
 
@@ -2594,7 +2594,7 @@ $app->post(
 )->setName('doRemoveEntitled')->add($authenticate);
 
 $app->get(
-    __('/dynamic-translations', 'routes') . '[/{text_orig}]',
+    '/dynamic-translations[/{text_orig}]',
     function ($request, $response, $args) {
         $text_orig = '';
         if (isset($args['text_orig'])) {
@@ -2618,7 +2618,7 @@ $app->get(
             $nb_fields = $result->nb;
         } catch (Exception $e) {
             Analog::log(
-                'An error occured counting l10n entries | ' .
+                'An error occurred counting l10n entries | ' .
                 $e->getMessage(),
                 Analog::WARNING
             );
@@ -2672,7 +2672,7 @@ $app->get(
                 $params['trans'] = $trans;
             } catch (\Exception $e) {
                 Analog::log(
-                    'An error occured retrieving l10n entries | ' .
+                    'An error occurred retrieving l10n entries | ' .
                     $e->getMessage(),
                     Analog::WARNING
                 );
@@ -2692,7 +2692,7 @@ $app->get(
 )->setName('dynamicTranslations')->add($authenticate);
 
 $app->post(
-    __('/dynamic-translations', 'routes'),
+    '/dynamic-translations',
     function ($request, $response) {
         $post = $request->getParsedBody();
         $error_detected = false;
@@ -2728,7 +2728,7 @@ $app->post(
                                     $post['text_orig'],
                                     $trans_lang
                                 ),
-                                _T("An error occured saving label `%label` for language `%lang`")
+                                _T("An error occurred saving label `%label` for language `%lang`")
                             )
                         );
                     }
@@ -2753,7 +2753,7 @@ $app->post(
 )->setName('editDynamicTranslation')->add($authenticate);
 
 $app->get(
-    __('/fields', 'routes') . __('/core', 'routes') . __('/configure', 'routes'),
+    '/fields/core/configure',
     function ($request, $response) {
         $fc = $this->fields_config;
 
@@ -2778,7 +2778,7 @@ $app->get(
 )->setName('configureCoreFields')->add($authenticate);
 
 $app->post(
-    __('/fields', 'routes') . __('/core', 'routes') . __('/configure', 'routes'),
+    '/fields/core/configure',
     function ($request, $response) {
         $post = $request->getParsedBody();
         $fc = $this->fields_config;
@@ -2822,7 +2822,7 @@ $app->post(
         } else {
             $this->flash->addMessage(
                 'error_detected',
-                _T("An error occured while storing fields configuration :(")
+                _T("An error occurred while storing fields configuration :(")
             );
         }
 
@@ -2833,13 +2833,13 @@ $app->post(
 )->setName('storeCoreFieldsConfig')->add($authenticate);
 
 $app->get(
-    __('/fields', 'routes') . __('/dynamic', 'routes') . __('/configure', 'routes') . '[/{form:adh|contrib|trans}]',
+    '/fields/dynamic/configure[/{form:adh|contrib|trans}]',
     function ($request, $response, $args) {
         $form_name = (isset($args['form'])) ? $args['form'] : 'adh';
         if (isset($_POST['form']) && trim($_POST['form']) != '') {
             $form_name = $_POST['form'];
         }
-        $fields = new \Galette\Repository\DynamicFieldsSet($this->zdb);
+        $fields = new \Galette\Repository\DynamicFieldsSet($this->zdb, $this->login);
         $fields_list = $fields->getList($form_name, $this->login);
 
         $field_type_names = DynamicField::getFieldsTypesNames();
@@ -2877,8 +2877,8 @@ $app->get(
 )->setName('configureDynamicFields')->add($authenticate);
 
 $app->get(
-    __('/fields', 'routes') . __('/dynamic', 'routes') . __('/move', 'routes') . '/{form:adh|contrib|trans}' .
-        '/{direction:' . __('up', 'routes') . '|' . __('down', 'routes') . '}/{id:\d+}',
+    '/fields/dynamic/move/{form:adh|contrib|trans}' .
+        '/{direction:up|down}/{id:\d+}',
     function ($request, $response, $args) {
         $field_id = (int)$args['id'];
         $form_name = $args['form'];
@@ -2892,7 +2892,7 @@ $app->get(
         } else {
             $this->flash->addMessage(
                 'error_detected',
-                _T("An error occured moving field :(")
+                _T("An error occurred moving field :(")
             );
         }
 
@@ -2903,8 +2903,7 @@ $app->get(
 )->setName('moveDynamicField')->add($authenticate);
 
 $app->get(
-    __('/fields', 'routes') . __('/dynamic', 'routes') .
-        __('/remove', 'routes') . '/{form:adh|contrib|trans}/{id:\d+}',
+    '/fields/dynamic/remove/{form:adh|contrib|trans}/{id:\d+}',
     function ($request, $response, $args) {
         $field = DynamicField::loadFieldType($this->zdb, (int)$args['id']);
         if ($field === false) {
@@ -2945,8 +2944,7 @@ $app->get(
 )->setName('removeDynamicField')->add($authenticate);
 
 $app->post(
-    __('/fields', 'routes') . __('/dynamic', 'routes') .
-        __('/remove', 'routes') . '/{form:adh|contrib|trans}/{id:\d+}',
+    '/fields/dynamic/remove/{form:adh|contrib|trans}/{id:\d+}',
     function ($request, $response, $args) {
         $post = $request->getParsedBody();
         $ajax = isset($post['ajax']) && $post['ajax'] === 'true';
@@ -2973,7 +2971,7 @@ $app->post(
             } else {
                 $this->flash->addMessage(
                     'error_detected',
-                    _T('An error occured trying to delete field :(')
+                    _T('An error occurred trying to delete field :(')
                 );
                 $success = false;
             }
@@ -2990,9 +2988,7 @@ $app->post(
 )->setName('doRemoveDynamicField')->add($authenticate);
 
 $app->get(
-    __('/fields', 'routes') . __('/dynamic', 'routes') .
-        '/{action:' . __('edit', 'routes') . '|' . __('add', 'routes') . '}' .
-        '/{form:adh|contrib|trans}[/{id:\d+}]',
+    '/fields/dynamic/{action:edit|add}/{form:adh|contrib|trans}[/{id:\d+}]',
     function ($request, $response, $args) {
         $action = $args['action'];
 
@@ -3001,11 +2997,11 @@ $app->get(
             $id_dynf = $args['id'];
         }
 
-        if ($action === __('edit', 'routes') && $id_dynf === null) {
+        if ($action === 'edit' && $id_dynf === null) {
             throw new \RuntimeException(
                 _T("Dynamic field ID cannot ben null calling edit route!")
             );
-        } elseif ($action === __('add', 'routes') && $id_dynf !== null) {
+        } elseif ($action === 'add' && $id_dynf !== null) {
              return $response
                 ->withStatus(301)
                 ->withHeader(
@@ -3013,7 +3009,7 @@ $app->get(
                     $this->router->pathFor(
                         'editDynamicField',
                         [
-                            'action'    => __('add', 'routes'),
+                            'action'    => 'add',
                             'form'      => $arg['form']
                         ]
                     )
@@ -3026,7 +3022,7 @@ $app->get(
         if ($this->session->dynamicfieldtype) {
             $df = $this->session->dynamicfieldtype;
             $this->session->dynamicfieldtype = null;
-        } elseif ($action === __('edit', 'routes')) {
+        } elseif ($action === 'edit') {
             $df = DynamicField::loadFieldType($this->zdb, $id_dynf);
             if ($df === false) {
                 $this->flash->addMessage(
@@ -3050,7 +3046,7 @@ $app->get(
         if ($df !== null) {
             $params['df'] = $df;
         }
-        if ($action === __('add', 'routes')) {
+        if ($action === 'add') {
             $params['field_type_names'] = DynamicField::getFieldsTypesNames();
         }
 
@@ -3065,16 +3061,14 @@ $app->get(
 )->setName('editDynamicField')->add($authenticate);
 
 $app->post(
-    __('/fields', 'routes') . __('/dynamic', 'routes') .
-        '/{action:' . __('edit', 'routes') . '|' . __('add', 'routes') . '}' .
-        '/{form:adh|contrib|trans}[/{id:\d+}]',
+    '/fields/dynamic/{action:edit|add}/{form:adh|contrib|trans}[/{id:\d+}]',
     function ($request, $response, $args) {
         $post = $request->getParsedBody();
 
         $error_detected = [];
         $warning_detected = [];
 
-        if ($args['action'] === __('add', 'routes')) {
+        if ($args['action'] === 'add') {
             $df = DynamicField::getFieldType($this->zdb, $post['field_type']);
         } else {
             $field_id = (int)$args['id'];
@@ -3086,10 +3080,10 @@ $app->post(
             $error_detected = $df->getErrors();
             $warning_detected = $df->getWarnings();
         } catch (\Exception $e) {
-            if ($args['action'] === __('edit', 'routes')) {
-                $msg = 'An error occured storing dynamic field ' . $df->getId() . '.';
+            if ($args['action'] === 'edit') {
+                $msg = 'An error occurred storing dynamic field ' . $df->getId() . '.';
             } else {
-                $msg = 'An error occured adding new dynamic field.';
+                $msg = 'An error occurred adding new dynamic field.';
             }
             Analog::log(
                 $msg . ' | ' .
@@ -3099,7 +3093,7 @@ $app->post(
             if (GALETTE_MODE == 'DEV') {
                 throw $e;
             }
-            $error_detected[] = _T('An error occured adding dynamic field :(');
+            $error_detected[] = _T('An error occurred adding dynamic field :(');
         }
 
         //flash messages
@@ -3141,7 +3135,7 @@ $app->post(
                 );
         } else {
             if (!$df instanceof \Galette\DynamicFields\Separator
-                && $args['action'] == __('add', 'routes')
+                && $args['action'] == 'add'
             ) {
                 return $response
                     ->withStatus(301)
@@ -3150,7 +3144,7 @@ $app->post(
                         $this->router->pathFor(
                             'editDynamicField',
                             [
-                                'action'    => __('edit', 'routes'),
+                                'action'    => 'edit',
                                 'form'      => $args['form'],
                                 'id'        => $df->getId()
                             ]
@@ -3172,7 +3166,7 @@ $app->post(
 )->setName('doEditDynamicField')->add($authenticate);
 
 $app->get(
-    __('/generate-data', 'routes'),
+    '/generate-data',
     function ($request, $response, $args) {
 
         $params = [
@@ -3195,7 +3189,7 @@ $app->get(
 )->setName('fakeData')->add($authenticate);
 
 $app->post(
-    __('/generate-data', 'routes'),
+    '/generate-data',
     function ($request, $response) {
         $post = $request->getParsedBody();
 
@@ -3247,7 +3241,7 @@ $app->post(
 )->setName('doFakeData')->add($authenticate);
 
 $app->get(
-    __('/admin-tools', 'routes'),
+    '/admin-tools',
     function ($request, $response) {
         $params = [
             'page_title'        => _T('Administration tools'),
@@ -3273,7 +3267,7 @@ $app->get(
 )->setName('adminTools')->add($authenticate);
 
 $app->post(
-    __('/admin-tools', 'routes'),
+    '/admin-tools',
     function ($request, $response) {
         $post = $request->getParsedBody();
 
@@ -3287,7 +3281,7 @@ $app->post(
             if ($res === true) {
                 $success_detected[] = _T("Texts has been successfully reinitialized.");
             } else {
-                $error_detected[] = _T("An error occured reinitializing texts :(");
+                $error_detected[] = _T("An error occurred reinitializing texts :(");
             }
         }
 
@@ -3298,7 +3292,7 @@ $app->post(
             if ($res === true) {
                 $success_detected[] = _T("Fields configuration has been successfully reinitialized.");
             } else {
-                $error_detected[] = _T("An error occured reinitializing fields configuration :(");
+                $error_detected[] = _T("An error occurred reinitializing fields configuration :(");
             }
         }
 
@@ -3309,7 +3303,7 @@ $app->post(
             if ($res === true) {
                 $success_detected[] = _T("PDF models has been successfully reinitialized.");
             } else {
-                $error_detected[] = _T("An error occured reinitializing PDF models :(");
+                $error_detected[] = _T("An error occurred reinitializing PDF models :(");
             }
         }
 
@@ -3325,7 +3319,7 @@ $app->post(
                     _T("Logins and passwords has been successfully filled (%i processed).")
                 );
             } else {
-                $error_detected[] = _T("An error occured filling empty logins and passwords :(");
+                $error_detected[] = _T("An error occurred filling empty logins and passwords :(");
             }
         }
 
@@ -3352,3 +3346,227 @@ $app->post(
             ->withHeader('Location', $this->router->pathFor('adminTools'));
     }
 )->setName('doAdminTools')->add($authenticate);
+
+$app->get(
+    '/payment-types',
+    function ($request, $response) {
+        $ptypes = new PaymentTypes(
+            $this->zdb,
+            $this->preferences,
+            $this->login
+        );
+        $list = $ptypes->getList();
+
+        // display page
+        $this->view->render(
+            $response,
+            'gestion_paymentstypes.tpl',
+            [
+                'page_title'        => _T("Payment types management"),
+                'list'              => $list,
+                'require_dialog'    => true
+            ]
+        );
+        return $response;
+    }
+)->setName('paymentTypes')->add($authenticate);
+
+$app->post(
+    '/payment-types',
+    function ($request, $response) {
+        $post = $request->getParsedBody();
+        $ptype = new PaymentType($this->zdb);
+
+        $ptype->name = $post['name'];
+        $res = $ptype->store($post);
+
+        if (!$res) {
+            $this->flash->addMessage(
+                'error_detected',
+                preg_replace(
+                    '(%s)',
+                    $ptype->name,
+                    _T("Payment type '%s' has not been added!")
+                )
+            );
+        } else {
+            $this->flash->addMessage(
+                'success_detected',
+                preg_replace(
+                    '(%s)',
+                    $ptype->name,
+                    _T("Payment type '%s' has been successfully added.")
+                )
+            );
+        }
+
+        return $response
+            ->withStatus(301)
+            ->withHeader('Location', $this->router->pathFor('paymentTypes'));
+    }
+)->setName('paymentTypes')->add($authenticate);
+
+$app->get(
+    '/payment-type/remove/{id:\d+}',
+    function ($request, $response, $args) {
+        $data = [
+            'id'            => $args['id'],
+            'redirect_uri'  => $this->router->pathFor('paymentTypes')
+        ];
+        $ptype = new PaymentType($this->zdb, (int)$args['id']);
+
+        // display page
+        $this->view->render(
+            $response,
+            'confirm_removal.tpl',
+            array(
+                'mode'          => $request->isXhr() ? 'ajax' : '',
+                'page_title'    => sprintf(
+                    _T('Remove payment type %1$s'),
+                    $ptype->getName()
+                ),
+                'form_url'      => $this->router->pathFor(
+                    'doRemovePaymentType',
+                    ['id' => $args['id']]
+                ),
+                'cancel_uri'    => $data['redirect_uri'],
+                'data'          => $data
+            )
+        );
+        return $response;
+    }
+)->setName('removePaymentType')->add($authenticate);
+
+$app->post(
+    '/payment-type/remove/{id:\d+}',
+    function ($request, $response, $args) {
+        $post = $request->getParsedBody();
+        $ajax = isset($post['ajax']) && $post['ajax'] === 'true';
+        $success = false;
+
+        $uri = isset($post['redirect_uri']) ?
+            $post['redirect_uri'] :
+            $this->router->pathFor('slash');
+
+        if (!isset($post['confirm'])) {
+            $this->flash->addMessage(
+                'error_detected',
+                _T("Removal has not been confirmed!")
+            );
+        } else {
+            $ptype = new PaymentType($this->zdb, (int)$args['id']);
+            try {
+                $res = $ptype->remove();
+                if ($res === true) {
+                    $this->flash->addMessage(
+                        'success_detected',
+                        str_replace(
+                            '%name',
+                            $ptype->name,
+                            _T("Payment type '%name' has been successfully deleted.")
+                        )
+                    );
+                    $success = true;
+                } else {
+                    $this->flash->addMessage(
+                        'error_detected',
+                        str_replace(
+                            '%name',
+                            $ptype->getName(),
+                            _T("An error occurred removing payment type '%name' :(")
+                        )
+                    );
+                }
+            } catch (\Exception $e) {
+                if ($e->getCode() == 23000) {
+                    $this->flash->addMessage(
+                        'error_detected',
+                        _T("That payment type is still in use, you cannot delete it!")
+                    );
+                } else {
+                    $this->flash->addMessage(
+                        'error_detected',
+                        $e->getMessage()
+                    );
+                }
+            }
+        }
+
+        if (!$ajax) {
+            return $response
+                ->withStatus(301)
+                ->withHeader('Location', $uri);
+        } else {
+            return $response->withJson(
+                [
+                    'success'   => $success
+                ]
+            );
+        }
+    }
+)->setName('doRemovePaymentType')->add($authenticate);
+
+$app->get(
+    '/payment-type/edit/{id:\d+}',
+    function ($request, $response, $args) {
+        $id = $args['id'];
+        $ptype = new PaymentType($this->zdb, (int)$id);
+
+        // display page
+        $this->view->render(
+            $response,
+            'edit_paymenttype.tpl',
+            [
+                'page_title'    => _T("Edit payment type"),
+                'ptype'         => $ptype
+            ]
+        );
+        return $response;
+    }
+)->setname('editPaymentType')->add($authenticate);
+
+$app->post(
+    '/payment-type/edit/{id:\d+}',
+    function ($request, $response, $args) {
+        $id = $args['id'];
+        $post = $request->getParsedBody();
+
+        if (isset($post['cancel'])) {
+            return $response
+                ->withStatus(301)
+                ->withHeader('Location', $this->router->pathFor('paymentTypes'));
+        }
+
+        $ptype = new PaymentType($this->zdb, (int)$id);
+        $ptype->name = $post['name'];
+        $res = $ptype->store();
+
+        if (!$res) {
+            $this->flash->addMessage(
+                'error_detected',
+                preg_replace(
+                    '(%s)',
+                    $ptype->name,
+                    _T("Title '%s' has not been modified!")
+                )
+            );
+
+            return $response
+                ->withStatus(301)
+                ->withHeader('Location', $this->router->pathFor('editPaymentType', ['id' => $id]));
+        } else {
+            $this->flash->addMessage(
+                'success_detected',
+                preg_replace(
+                    '(%s)',
+                    $ptype->name,
+                    _T("Payment type '%s' has been successfully modified.")
+                )
+            );
+
+            return $response
+                ->withStatus(301)
+                ->withHeader('Location', $this->router->pathFor('paymentTypes'));
+        }
+    }
+)->setname('editPaymentType')->add($authenticate);

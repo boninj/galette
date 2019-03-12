@@ -42,7 +42,7 @@ use Galette\Entity\Texts;
 
 //login page
 $app->get(
-    __('/login', 'routes'),
+    '/login',
     function ($request, $response, $args = []) use ($baseRedirect) {
         //store redirect path if any
         if (isset($args['r'])
@@ -70,7 +70,7 @@ $app->get(
 
 //Authentication procedure
 $app->post(
-    __('/login', 'routes'),
+    '/login',
     function ($request, $response) use ($app, $baseRedirect) {
         $nick = $request->getParsedBody()['login'];
         $password = $request->getParsedBody()['password'];
@@ -116,7 +116,7 @@ $app->post(
 
 //logout procedure
 $app->get(
-    __('/logout', 'routes'),
+    '/logout',
     function ($request, $response) {
         $this->login->logOut();
         $this->history->add(_("Log off"));
@@ -129,7 +129,7 @@ $app->get(
 
 //password lost page
 $app->get(
-    __('/password-lost', 'routes'),
+    '/password-lost',
     function ($request, $response) {
         // display page
         $this->view->render(
@@ -146,7 +146,7 @@ $app->get(
 //retrieve password procedure
 $app->map(
     ['GET', 'POST'],
-    __('/retrieve-pass', 'routes') . '[/{' . Adherent::PK . ':\d+}]',
+    '/retrieve-pass' . '[/{' . Adherent::PK . ':\d+}]',
     function ($request, $response, $args) {
         $from_admin = false;
         $redirect_url = $this->router->pathFor('slash');
@@ -256,7 +256,7 @@ $app->map(
                     $str = str_replace(
                         '%s',
                         $login_adh,
-                        _T("An error occured storing temporary password for %s. Please inform an admin.")
+                        _T("An error occurred storing temporary password for %s. Please inform an admin.")
                     );
                     $this->history->add($str);
                     $this->flash->addMessage(
@@ -307,7 +307,7 @@ $app->map(
 
 //password recovery page
 $app->get(
-    __('/password-recovery', 'routes') . '/{hash}',
+    '/password-recovery/{hash}',
     function ($request, $response, $args) {
         $password = new Password($this->zdb);
         if (!$id_adh = $password->isHashValid(base64_decode($args['hash']))) {
@@ -338,7 +338,7 @@ $app->get(
 
 //password recovery page
 $app->post(
-    __('/password-recovery', 'routes'),
+    '/password-recovery',
     function ($request, $response) {
         $post = $request->getParsedBody();
         $password = new Password($this->zdb);
@@ -369,7 +369,7 @@ $app->post(
                         $post['mdp_adh']
                     );
                     if ($res !== true) {
-                        $error = _T("An error occured while updating your password.");
+                        $error = _T("An error occurred while updating your password.");
                     } else {
                         $this->history->add(
                             str_replace(
