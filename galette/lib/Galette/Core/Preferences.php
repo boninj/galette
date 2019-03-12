@@ -210,7 +210,7 @@ class Preferences
         'pref_mail_smtp_port'   => '',
         'pref_mail_smtp_user'   => '',
         'pref_mail_smtp_password'   => '',
-		'pref_bool_mailmulti' => 0,
+		    'pref_bool_mailmulti' => 0,
         'pref_membership_ext'    =>    12,
         'pref_beg_membership'    =>    '',
         'pref_membership_offermonths' => 0,
