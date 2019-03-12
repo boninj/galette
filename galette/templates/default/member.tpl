@@ -3,12 +3,18 @@
 {block name="content"}
 {if isset($navigate) and $navigate|@count != 0}
     <nav>
-        <a id="prev" href="{if isset($navigate.prev)}{path_for name="editmember" data=["action" => {_T string="edit" domain="routes"}, "id" => $navigate.prev]}{else}#{/if}" class="button{if !isset($navigate.prev)} selected{/if}">{_T string="Previous"}</a>
+        <a href="{if isset($navigate.prev)}{path_for name="editmember" data=["action" => "edit", "id" => $navigate.prev]}{else}#{/if}" class="button{if !isset($navigate.prev)} selected{/if}">
+            <i class="fas fa-step-backward"></i>
+            {_T string="Previous"}
+        </a>
         {$navigate.pos}/{$navigate.count}
-        <a id="next" href="{if isset($navigate.next)}{path_for name="editmember" data=["action" => {_T string="edit" domain="routes"}, "id" => $navigate.next]}{else}#{/if}" class="button{if !isset($navigate.next)} selected{/if}">{_T string="Next"}</a>
+        <a href="{if isset($navigate.next)}{path_for name="editmember" data=["action" => "edit", "id" => $navigate.next]}{else}#{/if}" class="button{if !isset($navigate.next)} selected{/if}">
+            {_T string="Next"}
+            <i class="fas fa-step-forward"></i>
+        </a>
     </nav>
 {/if}
-        <form action="{if $self_adh}{path_for name="storemembers" data=["self" => {_T string="subscribe" domain="routes"}]}{else}{path_for name="storemembers"}{/if}" method="post" enctype="multipart/form-data" id="form">
+        <form action="{if $self_adh}{path_for name="storemembers" data=["self" => "subscribe"]}{else}{path_for name="storemembers"}{/if}" method="post" enctype="multipart/form-data" id="form">
         <div class="bigtable">
 {if $self_adh and $head_redirect}
             <div id="infobox">
@@ -34,7 +40,16 @@
                 <input type="checkbox" name="detach_parent" id="detach_parent" value="1"/>
             {/if}
         {else if ($login->isAdmin() or $login->isStaff()) and !$member->hasChildren()}
-            <a href="#" class="button" id="btnattach">{_T string="Attach member"}</a>
+            <a href="#" class="button" id="btnattach">
+                <i class="fas fa-link"></i>
+                {_T string="Attach member"}
+            </a>
+        {else if $member->hasChildren()}
+            <strong>{_T string="Parent of:"}</strong>
+            {foreach from=$member->children item=child}
+                <a href="{path_for name="member" data=["id" => $child->id]}">{$child->sfullname}</a>{if not $child@last}, {/if}
+            {/foreach}
+            </tr>
         {/if}
             </div>
     {/if}
@@ -65,7 +80,9 @@
     {/if}
         </div>
         <div class="button-container">
-            <input type="submit" name="valid" id="btnsave" value="{_T string="Save"}"/>
+            <button type="submit" name="valid" class="action">
+                <i class="fas fa-save fa-fw"></i> {_T string="Save"}
+            </button>
 
             {foreach item=entry from=$hidden_elements}
                 {if $entry->field_id neq 'mdp_adh'}
@@ -79,6 +96,8 @@
                         {else}
                             {assign var="value" value=""}
                         {/if}
+                    {elseif $entry->field_id eq 'activite_adh'}
+                        {assign var="value" value=$member->isActive()}
                     {else}
                         {assign var="value" value=$member->$propname}
                     {/if}
@@ -115,21 +134,17 @@
                     changeMonth: true,
                     changeYear: true,
                     showOn: 'button',
-                    buttonImage: '{base_url}/{$template_subdir}images/calendar.png',
-                    buttonImageOnly: true,
                     maxDate: '-0d',
                     yearRange: '-200:+0',
-                    buttonText: '{_T string="Select a date" escape="js"}'
+                    buttonText: '<i class="far fa-calendar-alt"></i> <span class="sr-only">{_T string="Select a date" escape="js"}</span>'
                 });
                 $('#date_crea_adh').datepicker({
                     changeMonth: true,
                     changeYear: true,
                     showOn: 'button',
-                    buttonImage: '{base_url}/{$template_subdir}images/calendar.png',
-                    buttonImageOnly: true,
                     maxDate: '-0d',
                     yearRange: 'c-10:c+0',
-                    buttonText: '{_T string="Select a date" escape="js"}'
+                    buttonText: '<i class="far fa-calendar-alt"></i> <span class="sr-only">{_T string="Select a date" escape="js"}</span>'
                 });
 
 {if !$self_adh and !$head_redirect}
@@ -244,7 +259,7 @@
                         var _gname = $(this).text();
                         $('#none_selected').remove()
                         if ( $('#group_' + _gid).length == 0 ) {
-                            var _li = '<li id="group_' + _gid + '">' + _gname + '</li>';
+                            var _li = '<li id="group_' + _gid + '"><i class="fas fa-user-minus"></i> ' + _gname + '</li>';
                             $('#selected_groups ul').append(_li);
                             $('#group_' + _gid).click(function(){
                                 $(this).remove();

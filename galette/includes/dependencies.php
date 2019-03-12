@@ -4,7 +4,7 @@
  *
  * PHP version 5
  *
- * Copyright © 2003-2014 The Galette Team
+ * Copyright © 2003-2018 The Galette Team
  *
  * This file is part of Galette (http://galette.tuxfamily.org).
  *
@@ -27,9 +27,8 @@
  * @author    Frédéric Jaqcuot <unknown@unknow.com>
  * @author    Georges Khaznadar (password encryption, images) <unknown@unknow.com>
  * @author    Johan Cwiklinski <johan@x-tnd.be>
- * @copyright 2003-2014 The Galette Team
+ * @copyright 2003-2018 The Galette Team
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL License 3.0 or (at your option) any later version
- * @version   SVN: $Id$
  * @link      http://galette.tuxfamily.org
  */
 
@@ -289,6 +288,7 @@ $container['acls'] = function ($c) {
         'doEditTransaction' => 'staff',
         'contribution'      => 'staff',
         'contributionDates' => 'staff',
+        'contributionMembers'       => 'staff',
         'attendance_sheet_details'  => 'groupmanager',
         'attendance_sheet'  => 'groupmanager',
         'entitleds'         => 'staff',
@@ -338,7 +338,11 @@ $container['acls'] = function ($c) {
         'masschangeMembers'         => 'groupmanager',
         'massstoremembers'          => 'groupmanager',
         'masschangeMembersReview'   => 'groupmanager',
-        'duplicateMember'           => 'staff'
+        'duplicateMember'           => 'staff',
+        'paymentTypes'              => 'staff',
+        'removePaymentType'         => 'staff',
+        'doRemovePaymentType'       => 'staff',
+        'editPaymentType'           => 'staff'
     ];
 
     foreach ($c['plugins']->getModules() as $plugin) {
@@ -423,7 +427,7 @@ $container['cache'] = function ($c) {
 $container['translator'] = function ($c) {
     $translator = new Galette\Core\Translator();
 
-    $domains = ['galette', 'routes'];
+    $domains = ['galette'];
     foreach ($domains as $domain) {
         //load translation file for domain
         $translator->addTranslationFilePattern(
@@ -437,7 +441,7 @@ $container['translator'] = function ($c) {
         $translator->addTranslationFilePattern(
             'phparray',
             GALETTE_ROOT . '/lang/',
-            $domain . '_%s_local.php',
+            $domain . '_%s_local_lang.php',
             $domain
         );
     }

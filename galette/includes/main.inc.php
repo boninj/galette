@@ -329,25 +329,25 @@ $baseRedirect = function ($request, $response, $args = []) use ($container) {
                     return $response
                         ->withStatus(301)
                         //Do not use "$router->pathFor('dashboard'))" to prevent translation issues when login
-                        ->withHeader('Location', getGaletteBaseUrl($request) . __('/dashboard', 'routes'));
+                        ->withHeader('Location', getGaletteBaseUrl($request) . '/dashboard');
                 } else {
                     return $response
                         ->withStatus(301)
                         //Do not use "$router->pathFor('members'))" to prevent translation issues when login
-                        ->withHeader('Location', getGaletteBaseUrl($request) . __('/members', 'routes'));
+                        ->withHeader('Location', getGaletteBaseUrl($request) . '/members');
                 }
             } else {
                 return $response
                     ->withStatus(301)
                     //Do not use "$router->pathFor('me'))" to prevent translation issues when login
-                    ->withHeader('Location', getGaletteBaseUrl($request) . __('/dashboard', 'routes'));
+                    ->withHeader('Location', getGaletteBaseUrl($request) . '/dashboard');
             }
         }
     } else {
         return $response
             ->withStatus(301)
             //Do not use "$router->pathFor('login'))" to prevent translation issues when login
-            ->withHeader('Location', getGaletteBaseUrl($request) . __('/login', 'routes'));
+            ->withHeader('Location', getGaletteBaseUrl($request) . '/login');
     }
 };
 
@@ -360,11 +360,18 @@ $baseRedirect = function ($request, $response, $args = []) use ($container) {
  */
 function getGaletteBaseUrl(\Slim\Http\Request $request)
 {
-    return str_replace(
-        ['index.php', $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST']],
+    $url = preg_replace(
+        [
+            '|index\.php|',
+            '|https?://' . $_SERVER['HTTP_HOST'] . '(:\d+)?' . '|'
+        ],
         ['', ''],
         $request->getUri()->getBaseUrl()
     );
+    if (strlen($url) && substr($url, -1) !== '/') {
+        $url .= '/';
+    }
+    return $url;
 }
 
 /**
@@ -437,19 +444,20 @@ $app->add(function ($request, $response, $next) use ($i18n) {
 
     if (isset($get['pref_lang'])) {
         $route = $request->getAttribute('route');
-        $uri = $request->getUri();
 
         $route_name = $route->getName();
         $arguments = $route->getArguments();
 
         $this->i18n->changeLanguage($get['pref_lang']);
         $this->session->i18n = $this->i18n;
-        $this->session->changelang_route = [
-            'name'      => $route_name,
-            'arguments' => $arguments
-        ];
 
-        return $response->withRedirect($this->router->pathFor('changeLanguage'), 301);
+        return $response->withRedirect(
+            $this->router->pathFor(
+                $route_name,
+                $arguments
+            ),
+            301
+        );
     }
     return $next($request, $response);
 });

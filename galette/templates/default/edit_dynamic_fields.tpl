@@ -31,7 +31,7 @@
             {if $field->isRepeatable()} data-maxrepeat="{$field->getRepeat()}"{/if}
         >
             <!-- If no option is present, page is not XHTML compliant -->
-            <option value="">{if $field->isRequired()}{_T string="Select an option"}{/if}</option>
+            <option value="">{_T string="Select an option"}</option>
             {html_options options=$field->getValues() selected=$valuedata}
         </select>
     {elseif $field|is_a:'Galette\DynamicFields\Date'}
@@ -182,9 +182,7 @@
             changeMonth: true,
             changeYear: true,
             showOn: 'button',
-            buttonImage: '{base_url}/{$template_subdir}images/calendar.png',
-            buttonImageOnly: true,
-            buttonText: '{_T string="Select a date" escape="js"}'
+            buttonText: '<i class="far fa-calendar-alt"></i> <span class="sr-only">{_T string="Select a date" escape="js"}</span>'
         });
     });
 </script>
