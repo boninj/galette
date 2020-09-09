@@ -259,7 +259,7 @@ class PdfAdhesionForm extends Pdf
                         $value .= '<input type="text" name="' .
                             $field_name . '" value="' .
                             $field_value['field_val'] . '"' .
-                            ' size="50" maxlength="30"'.
+                            ' size="25" maxlength="30"'.
                             '/>';
                         break;
                     case DynamicField::BOOLEAN:
