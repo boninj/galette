@@ -52,7 +52,7 @@ $app->get(
 //print logo route
 $app->get(
     '/print-logo',
-    ImagesController::class . ':logo'
+    ImagesController::class . ':printLogo'
 )->setName('printLogo');
 
 //photo route
@@ -64,7 +64,7 @@ $app->get(
 //system information - keep old route with typo ('s' on 'information') for now (0.9.4)
 $app->get(
     '/system-informations',
-    function ($request, $response, $args) {
+    function ($request, $response) {
         return $response
             ->withStatus(302)
             ->withHeader('Location', $this->router->pathFor('sysinfos'));

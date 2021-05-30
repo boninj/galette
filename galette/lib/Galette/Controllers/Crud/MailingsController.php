@@ -89,6 +89,7 @@ class MailingsController extends CrudController
                 $m->removeAttachments(true);
             }
             $this->session->mailing = null;
+            $this->session->redirect_mailing = null;
         }
 
         $params = array();
@@ -123,7 +124,7 @@ class MailingsController extends CrudController
             ) {
                 $mailing = $this->session->mailing;
             } elseif (isset($get['from']) && is_numeric($get['from'])) {
-                $mailing = new Mailing($this->preferences, null, $get['from']);
+                $mailing = new Mailing($this->preferences, [], (int)$get['from']);
                 MailingHistory::loadFrom($this->zdb, (int)$get['from'], $mailing);
             } elseif (isset($get['reminder'])) {
                 //FIXME: use a constant!
@@ -132,7 +133,7 @@ class MailingsController extends CrudController
                 $filters->filter_account = Members::ACTIVE_ACCOUNT;
                 $m = new Members($filters);
                 $members = $m->getList(true);
-                $mailing = new Mailing($this->preferences, ($members !== false) ? $members : null);
+                $mailing = new Mailing($this->preferences, ($members !== false) ? $members : []);
             } else {
                 if (
                     count($filters->selected) == 0
@@ -162,7 +163,7 @@ class MailingsController extends CrudController
                 }
                 $m = new Members();
                 $members = $m->getArrayList($filters->selected);
-                $mailing = new Mailing($this->preferences, ($members !== false) ? $members : null);
+                $mailing = new Mailing($this->preferences, ($members !== false) ? $members : []);
             }
 
             if (isset($get['remove_attachment'])) {
@@ -225,8 +226,7 @@ class MailingsController extends CrudController
         $success_detected = [];
 
         $goto = $this->router->pathFor('mailings');
-        $redirect_url = ($this->session->redirect_mailing !== null) ?
-            $this->session->redirect_mailing : $this->router->pathFor('members');
+        $redirect_url = $this->session->redirect_mailing ?? $this->router->pathFor('members');
 
         //We're done :-)
         if (
@@ -239,6 +239,7 @@ class MailingsController extends CrudController
                 $m->removeAttachments(true);
             }
             $this->session->mailing = null;
+            $this->session->redirect_mailing = null;
             if (isset($this->session->filter_mailing)) {
                 $filters = $this->session->filter_mailing;
                 $filters->selected = [];
@@ -312,7 +313,7 @@ class MailingsController extends CrudController
                     $mailing->message = $post['mailing_corps'];
                 }
 
-                switch ($post['sender']) {
+                switch ($post['sender'] ?? false) {
                     case GaletteMail::SENDER_CURRENT:
                         $member = new Adherent($this->zdb, (int)$this->login->id, false);
                         $mailing->setSender(
@@ -373,6 +374,8 @@ class MailingsController extends CrudController
                 } else {
                     $mailing->current_step = Mailing::STEP_START;
                 }
+                //until mail is sent (above), we redirect to mailing page
+                $goto = $this->router->pathFor('mailing');
             }
 
             if (isset($post['mailing_confirm']) && count($error_detected) == 0) {
@@ -390,7 +393,7 @@ class MailingsController extends CrudController
                         $error_detected[] = $e;
                     }
                 } else {
-                    $mlh = new MailingHistory($this->zdb, $this->login, null, $mailing);
+                    $mlh = new MailingHistory($this->zdb, $this->login, $this->preferences, null, $mailing);
                     $mlh->storeMailing(true);
                     Analog::log(
                         '[Mailings] Message has been sent.',
@@ -401,6 +404,7 @@ class MailingsController extends CrudController
                     $filters->selected = null;
                     $this->session->filter_members = $filters;
                     $this->session->mailing = null;
+                    $this->session->redirect_mailing = null;
                     $success_detected[] = _T("Mailing has been successfully sent!");
                     $goto = $redirect_url;
                 }
@@ -422,10 +426,12 @@ class MailingsController extends CrudController
 
             if (isset($post['mailing_save'])) {
                 //user requested to save the mailing
-                $histo = new MailingHistory($this->zdb, $this->login, null, $mailing);
+                $histo = new MailingHistory($this->zdb, $this->login, $this->preferences, null, $mailing);
                 if ($histo->storeMailing() !== false) {
                     $success_detected[] = _T("Mailing has been successfully saved.");
                     $this->session->mailing = null;
+                    $this->session->redirect_mailing = null;
+                    $goto = $this->router->pathFor('mailings');
                 }
             }
         }
@@ -481,7 +487,7 @@ class MailingsController extends CrudController
             $filters->show = $request->getQueryParams()['nbshow'];
         }
 
-        $mailhist = new MailingHistory($this->zdb, $this->login, $filters);
+        $mailhist = new MailingHistory($this->zdb, $this->login, $this->preferences, $filters);
 
         if ($option !== null) {
             switch ($option) {
@@ -495,7 +501,7 @@ class MailingsController extends CrudController
                     $mailhist->clean();
                     //reinitialize object after flush
                     $filters = new MailingsList();
-                    $mailhist = new MailingHistory($this->zdb, $this->login, $filters);
+                    $mailhist = new MailingHistory($this->zdb, $this->login, $this->preferences, $filters);
                     break;
             }
         }
@@ -552,11 +558,9 @@ class MailingsController extends CrudController
             if (isset($post['end_date_filter']) || isset($post['start_date_filter'])) {
                 try {
                     if (isset($post['start_date_filter'])) {
-                        $field = _T("start date filter");
                         $filters->start_date_filter = $post['start_date_filter'];
                     }
                     if (isset($post['end_date_filter'])) {
-                        $field = _T("end date filter");
                         $filters->end_date_filter = $post['end_date_filter'];
                     }
                 } catch (\Exception $e) {
@@ -678,7 +682,7 @@ class MailingsController extends CrudController
      */
     protected function doDelete(array $args, array $post)
     {
-        $mailhist = new MailingHistory($this->zdb, $this->login);
+        $mailhist = new MailingHistory($this->zdb, $this->login, $this->preferences);
         return $mailhist->removeEntries($args['id'], $this->history);
     }
     // /CRUD - Delete
@@ -708,7 +712,7 @@ class MailingsController extends CrudController
 
         $mailing = null;
         if (isset($args['id'])) {
-            $mailing = new Mailing($this->preferences, null);
+            $mailing = new Mailing($this->preferences);
             MailingHistory::loadFrom($this->zdb, (int)$args['id'], $mailing, false);
             $attachments = $mailing->attachments;
         } else {
@@ -737,7 +741,7 @@ class MailingsController extends CrudController
             $mailing->subject = $post['subject'];
             $mailing->message = $post['body'];
             $mailing->html = ($post['html'] === 'true');
-            $attachments = (isset($post['attachments']) ? $post['attachments'] : []);
+            $attachments = $mailing->attachments;
         }
 
         // display page
@@ -746,7 +750,7 @@ class MailingsController extends CrudController
             'mailing_preview.tpl',
             [
                 'page_title'    => _T("Mailing preview"),
-                'mailing_id'    => $args['id'],
+                'mailing_id'    => $args['id'] ?? null,
                 'mode'          => ($ajax ? 'ajax' : ''),
                 'mailing'       => $mailing,
                 'recipients'    => $mailing->recipients,
@@ -770,7 +774,7 @@ class MailingsController extends CrudController
      */
     public function previewAttachment(Request $request, Response $response, array $args = []): Response
     {
-        $mailing = new Mailing($this->preferences, null);
+        $mailing = new Mailing($this->preferences);
         MailingHistory::loadFrom($this->zdb, (int)$args['id'], $mailing, false);
         $attachments = $mailing->attachments;
         $attachment = $attachments[$args['pos']];

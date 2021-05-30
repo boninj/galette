@@ -7,7 +7,7 @@
  *
  * PHP version 5
  *
- * Copyright © 2009-2014 The Galette Team
+ * Copyright © 2009-2020 The Galette Team
  *
  * This file is part of Galette (http://galette.tuxfamily.org).
  *
@@ -28,7 +28,7 @@
  * @package   Galette
  *
  * @author    Johan Cwiklinski <johan@x-tnd.be>
- * @copyright 2009-2014 The Galette Team
+ * @copyright 2009-2020 The Galette Team
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL License 3.0 or (at your option) any later version
  * @link      http://galette.tuxfamily.org
  * @since     Available since 0.7dev - 2009-03-07
@@ -54,14 +54,14 @@ use Galette\IO\File;
  */
 class Mailing extends GaletteMail
 {
-    const STEP_START = 0;
-    const STEP_PREVIEW = 1;
-    const STEP_SEND = 2;
-    const STEP_SENT = 3;
+    public const STEP_START = 0;
+    public const STEP_PREVIEW = 1;
+    public const STEP_SEND = 2;
+    public const STEP_SENT = 3;
 
-    const MIME_HTML = 'text/html';
-    const MIME_TEXT = 'text/plain';
-    const MIME_DEFAULT = self::MIME_TEXT;
+    public const MIME_HTML = 'text/html';
+    public const MIME_TEXT = 'text/plain';
+    public const MIME_DEFAULT = self::MIME_TEXT;
 
     private $id;
 
@@ -81,19 +81,16 @@ class Mailing extends GaletteMail
      * @param array       $members     An array of members
      * @param int         $id          Identifier, defaults to null
      */
-    public function __construct(Preferences $preferences, $members, $id = null)
+    public function __construct(Preferences $preferences, array $members = [], int $id = null)
     {
         parent::__construct($preferences);
-        if ($id !== null) {
-            $this->id = $id;
-        } else {
-            $this->generateNewId();
-        }
+        $this->id = $id ?? $this->generateNewId();
+
         $this->current_step = self::STEP_START;
         $this->mime_type = self::MIME_DEFAULT;
         /** TODO: add a preference that propose default mime-type to use,
             then init it here */
-        if ($members !== null) {
+        if (count($members)) {
             //Check which members have a valid email address and which have not
             $this->setRecipients($members);
         }
@@ -103,15 +100,23 @@ class Mailing extends GaletteMail
     /**
      * Generate new mailing id and temporary path
      *
-     * @return void
+     * @return string
      */
-    private function generateNewId()
+    private function generateNewId(): string
     {
-        global $zdb;
+        $id = '';
+        $chars = 'abcdefghjkmnpqrstuvwxyz0123456789';
+        $i = 0;
+        $size = 30;
+        while ($i <= $size - 1) {
+            $num = mt_rand(0, strlen($chars) - 1)  % strlen($chars);
+            $id .= substr($chars, $num, 1);
+            $i++;
+        }
 
-        $pass = new Password($zdb);
-        $this->id = $pass->makeRandomPassword(30);
+        $this->id = $id;
         $this->generateTmpPath($this->id);
+        return $this->id;
     }
 
     /**
@@ -124,10 +129,7 @@ class Mailing extends GaletteMail
     private function generateTmpPath($id = null)
     {
         if ($id === null) {
-            global $zdb;
-
-            $pass = new Password($zdb);
-            $id = $pass->makeRandomPassword(30);
+            $id = $this->generateNewId();
         }
         $this->tmp_path = GALETTE_ATTACHMENTS_PATH . '/' . $id;
     }
@@ -341,10 +343,10 @@ class Mailing extends GaletteMail
         ) {
             foreach ($this->attachments as &$attachment) {
                 $old_path = $attachment->getDestDir() . $attachment->getFileName();
-                $new_path = GALETTE_ATTACHMENTS_PATH . $this->id . '/' .
+                $new_path = GALETTE_ATTACHMENTS_PATH . $id . '/' .
                     $attachment->getFileName();
-                if (!file_exists(GALETTE_ATTACHMENTS_PATH . $this->id)) {
-                    mkdir(GALETTE_ATTACHMENTS_PATH . $this->id);
+                if (!file_exists(GALETTE_ATTACHMENTS_PATH . $id)) {
+                    mkdir(GALETTE_ATTACHMENTS_PATH . $id);
                 }
                 $moved = rename($old_path, $new_path);
                 if ($moved) {

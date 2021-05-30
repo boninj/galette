@@ -60,8 +60,8 @@ class Contribution
 {
     use DynamicsTrait;
 
-    const TABLE = 'cotisations';
-    const PK = 'id_cotis';
+    public const TABLE = 'cotisations';
+    public const PK = 'id_cotis';
 
     private $_id;
     private $_date;
@@ -84,6 +84,8 @@ class Contribution
     private $login;
 
     private $errors;
+
+    private $sendmail = false;
 
     /**
      * Default constructor
@@ -484,7 +486,7 @@ class Contribution
             }
         }
 
-        $this->dynamicsCheck($values);
+        $this->dynamicsCheck($values, $required, $disabled);
 
         if (count($this->errors) > 0) {
             Analog::log(
@@ -559,6 +561,8 @@ class Contribution
     {
         global $hist, $emitter;
 
+        $event = null;
+
         if (count($this->errors) > 0) {
             throw new \RuntimeException(
                 'Existing errors prevents storing contribution: ' .
@@ -615,8 +619,7 @@ class Contribution
                         Adherent::getSName($this->zdb, $this->_member)
                     );
                     $success = true;
-
-                    $emitter->emit('contribution.add', $this);
+                    $event = 'contribution.add';
                 } else {
                     $hist->add(_T("Fail to add new contribution."));
                     throw new \Exception(
@@ -646,8 +649,7 @@ class Contribution
                     );
                 }
                 $success = true;
-
-                $emitter->emit('contribution.edit', $this);
+                $event = 'contribution.edit';
             }
             //update deadline
             if ($this->isCotis()) {
@@ -665,6 +667,12 @@ class Contribution
 
             $this->zdb->connection->commit();
             $this->_orig_amount = $this->_amount;
+
+            //send event at the end of process, once all has been stored
+            if ($event !== null) {
+                $emitter->emit($event, $this);
+            }
+
             return true;
         } catch (\Exception $e) {
             $this->zdb->connection->rollBack();
@@ -1317,5 +1325,28 @@ class Contribution
                     break;
             }
         }
+    }
+
+    /**
+     * Flag creation mail sending
+     *
+     * @param boolean $send True (default) to send creation email
+     *
+     * @return Contribution
+     */
+    public function setSendmail($send = true)
+    {
+        $this->sendmail = $send;
+        return $this;
+    }
+
+    /**
+     * Should we send administrative emails to member?
+     *
+     * @return boolean
+     */
+    public function sendEMail()
+    {
+        return $this->sendmail;
     }
 }
