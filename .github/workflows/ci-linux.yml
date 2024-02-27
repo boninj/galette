@@ -323,6 +323,8 @@ jobs:
           mysql -e 'create database IF NOT EXISTS galette_tests CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;' -u galette_tests --password=g@l3tte -h 127.0.0.1 -P 3306
           mysql -e 'use galette_tests; source galette/install/scripts/mysql.sql;' -u galette_tests --password=g@l3tte -h 127.0.0.1 -P 3306
           mysql -e 'SELECT @@character_set_database, @@collation_database;' -u galette_tests --password=g@l3tte -h 127.0.0.1 -P 3306
+          mysql -e 'use galette_tests; SHOW CREATE TABLE galette_titles;' -u galette_tests --password=g@l3tte -h 127.0.0.1 -P 3306
+          mysql -e 'SHOW GLOBAL VARIABLES WHERE variable_name LIKE "character\_set\_%" OR variable_name LIKE "collation%";' -u galette_tests --password=g@l3tte -h 127.0.0.1 -P 3306
         if: env.skip != 'true' && (startsWith(matrix.db-image, 'mysql') || startsWith(matrix.db-image, 'mariadb'))
 
       - name: Unit tests
