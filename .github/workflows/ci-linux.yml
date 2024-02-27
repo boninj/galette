@@ -272,7 +272,6 @@ jobs:
           composer --version
           echo "node $(node --version)"
           echo "npm $(npm --version)"
-          docker exec ${{ job.services.db.id }} bash -c "if [[ -n \$(command -v psql) ]]; then psql --version; else if [[ -n \$(command -v mysql) ]]; then mysql --version; else mariadb --version; fi fi"
 
       - name: Checkout
         if: env.skip != 'true'
