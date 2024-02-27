@@ -229,7 +229,6 @@ jobs:
           collation server: 'utf8mb4_unicode_520_ci'
           mysql version: ${{ matrix.db-version }}
           mysql database: ${{ env.DB_NAME }}
-          mysql root password: ${{ env.DB_PASSWORD }}
           mysql user: ${{ env.DB_USER }}
           mysql password: ${{ env.DB_PASSWORD }}
         if: env.skip != 'true' && startsWith(matrix.db-image, 'mysql')
@@ -241,7 +240,6 @@ jobs:
           collation server: 'utf8mb4_unicode_520_ci'
           mysql version: ${{ matrix.db-version }}
           mysql database: ${{ env.DB_NAME }}
-          mysql root password: ${{ env.DB_PASSWORD }}
           mysql user: ${{ env.DB_USER }}
           mysql password: ${{ env.DB_PASSWORD }}
         if: env.skip != 'true' && startsWith(matrix.db-image, 'mariadb')
