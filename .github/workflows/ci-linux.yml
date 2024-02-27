@@ -292,7 +292,7 @@ jobs:
 
       - name: Init for MariaDB (update)
         run: |
-          mysql -e 'create database IF NOT EXISTS galette_tests;' -u galette_tests --password=g@l3tte -h 127.0.0.1 -P 3306
+          mysql -e 'create database IF NOT EXISTS galette_tests CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;' -u galette_tests --password=g@l3tte -h 127.0.0.1 -P 3306
           mysql -e 'use galette_tests; source tests/mysql_06.sql;' -u galette_tests --password=g@l3tte -h 127.0.0.1 -P 3306
         if: env.skip != 'true' && (startsWith(matrix.db-image, 'mysql') || startsWith(matrix.db-image, 'mariadb'))
 
@@ -310,7 +310,7 @@ jobs:
 
       - name: Init for MariaDB
         run: |
-          mysql -e 'create database IF NOT EXISTS galette_tests;' -u galette_tests --password=g@l3tte -h 127.0.0.1 -P 3306
+          mysql -e 'create database IF NOT EXISTS galette_tests CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;' -u galette_tests --password=g@l3tte -h 127.0.0.1 -P 3306
           mysql -e 'use galette_tests; source galette/install/scripts/mysql.sql;' -u galette_tests --password=g@l3tte -h 127.0.0.1 -P 3306
         if: env.skip != 'true' && (startsWith(matrix.db-image, 'mysql') || startsWith(matrix.db-image, 'mariadb'))
 
