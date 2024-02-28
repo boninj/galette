@@ -123,6 +123,10 @@ class Db
             }
 
             $this->doConnection();
+            $this->db->query(
+                "SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_520_ci'",
+                Adapter::QUERY_MODE_EXECUTE
+            );
         } catch (Throwable $e) {
             // perhaps factory() failed to load the specified Adapter class
             Analog::log(
