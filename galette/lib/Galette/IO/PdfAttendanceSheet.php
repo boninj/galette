@@ -148,6 +148,9 @@ class PdfAttendanceSheet extends Pdf
         $this->SetDrawColor(160, 160, 160);
         $this->SetTextColor(0);
         $this->SetFont(Pdf::FONT, '', Pdf::FONT_SIZE - 2);
+
+        //enable pagination
+        $this->showPagination();
     }
 
     /**

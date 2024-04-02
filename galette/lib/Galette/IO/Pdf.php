@@ -229,20 +229,20 @@ class Pdf extends \TCPDF
                 0,
                 'C'
             );
+        }
 
-            if ($this->paginated) {
-                $this->SetFont(self::FONT, '', self::FONT_SIZE - 3);
-                $this->Ln();
-                $this->Cell(
-                    0,
-                    4,
-                    $this->getAliasRightShift() . $this->PageNo() .
-                    '/' . $this->getAliasNbPages(),
-                    0,
-                    1,
-                    ($this->i18n->isRTL() ? 'L' : 'R')
-                );
-            }
+        if ($this->paginated) {
+            $this->SetFont(self::FONT, '', self::FONT_SIZE - 3);
+            $this->Ln();
+            $this->Cell(
+                0,
+                4,
+                $this->getAliasRightShift() . $this->PageNo() .
+                '/' . $this->getAliasNbPages(),
+                0,
+                1,
+                ($this->i18n->isRTL() ? 'L' : 'R')
+            );
         }
     }
 
