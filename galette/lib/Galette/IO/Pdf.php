@@ -228,6 +228,8 @@ class Pdf extends TCPDF
     /**
      * Draws PDF page footer
      *
+     * @param ?TCPDF $pdf PDF instance
+     *
      * @return void
      */
     public function Footer(TCPDF $pdf = null): void // phpcs:ignore PSR1.Methods.CamelCapsMethodName
