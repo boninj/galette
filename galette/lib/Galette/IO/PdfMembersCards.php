@@ -88,17 +88,17 @@ class PdfMembersCards extends Pdf
      */
     public function __construct(Preferences $prefs)
     {
-        parent::__construct($prefs);
         $this->setRTL(false);
         $this->filename = __('cards') . '.pdf';
-        $this->init();
+        parent::__construct($prefs);
     }
+
     /**
      * Initialize PDF
      *
      * @return void
      */
-    private function init()
+    public function init(): void
     {
         // Set document information
         $this->SetTitle(_T("Member's Cards"));
@@ -141,7 +141,7 @@ class PdfMembersCards extends Pdf
 
         // Card width
         $this->wi = self::getWidth();
-        // Card heigth
+        // Card height
         $this->he = self::getHeight();
         // Number of colons
         $this->nbcol = self::getCols();

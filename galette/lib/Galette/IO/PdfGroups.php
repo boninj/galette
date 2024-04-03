@@ -68,9 +68,8 @@ class PdfGroups extends Pdf
      */
     public function __construct(Preferences $prefs)
     {
-        parent::__construct($prefs);
         $this->filename = __('groups_list') . '.pdf';
-        $this->init();
+        parent::__construct($prefs);
     }
 
     /**
@@ -101,7 +100,7 @@ class PdfGroups extends Pdf
      *
      * @return void
      */
-    private function init()
+    public function init(): void
     {
         // Set document information
         $this->doc_title = _T("Members by groups");
@@ -123,6 +122,8 @@ class PdfGroups extends Pdf
 
         //enable pagination
         $this->showPagination();
+
+        parent::init();
     }
 
     /**
@@ -135,8 +136,6 @@ class PdfGroups extends Pdf
      */
     public function draw($groups, Login $login)
     {
-        $this->Open();
-        $this->AddPage();
         $this->PageHeader($this->doc_title);
 
         $first = true;

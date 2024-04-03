@@ -94,9 +94,7 @@ class PdfContribution extends Pdf
 
         parent::__construct($prefs, $this->model);
 
-        $this->Open();
-
-        $this->AddPage();
+        parent::init();
         $this->PageHeader();
         $this->PageBody();
     }

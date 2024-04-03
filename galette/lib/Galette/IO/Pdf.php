@@ -43,6 +43,7 @@ use Galette\Core\Preferences;
 use Galette\Entity\PdfModel;
 use Analog\Analog;
 use Slim\Routing\RouteParser;
+use TCPDF;
 
 /*
  * TCPDF configuration file for Galette
@@ -64,7 +65,7 @@ require_once GALETTE_CONFIG_PATH . 'galette_tcpdf_config.php';
  * @since     Available since 0.7dev - 2007-07-21
  */
 
-class Pdf extends \TCPDF
+class Pdf extends TCPDF
 {
     public const FONT = 'DejaVuSans';
     public const FONT_SIZE = 10;
@@ -74,6 +75,7 @@ class Pdf extends \TCPDF
     private $model;
     private $paginated = false;
     protected $filename;
+    protected float $footer_height;
 
     /**
      * Main constructor, set creator and author
@@ -111,6 +113,34 @@ class Pdf extends \TCPDF
             $this->model = $model;
             $this->SetTitle($this->model->htitle);
         }
+
+        $this->init();
+        $this->calculateFooterHeight();
+    }
+
+    /**
+     * Initialize PDF
+     *
+     * @return void
+     */
+    public function init(): void
+    {
+        $this->Open();
+        $this->AddPage();
+    }
+
+    /**
+     * Calculate footer height
+     *
+     * @return void
+     */
+    private function calculateFooterHeight(): void
+    {
+        $pdf = clone $this;
+        $y_orig = $pdf->getY();
+        $this->Footer($pdf);
+        $y_end = $pdf->getY();
+        $this->footer_height = $y_end - $y_orig;
     }
 
     /**
@@ -200,19 +230,22 @@ class Pdf extends \TCPDF
      *
      * @return void
      */
-    public function Footer() // phpcs:ignore PSR1.Methods.CamelCapsMethodName
+    public function Footer(TCPDF $pdf = null): void // phpcs:ignore PSR1.Methods.CamelCapsMethodName
     {
-        $this->SetY(-20);
+        if ($pdf === null) {
+            $pdf = $this;
+            $pdf->SetY(-($this->footer_height + 15));
+        }
         if (isset($this->model)) {
             $hfooter = '';
             if (trim($this->model->hstyles) !== '') {
                 $hfooter .= "<style>\n" . $this->model->hstyles . "\n</style>\n\n";
             }
             $hfooter .= $this->model->hfooter;
-            $this->writeHtml($hfooter);
+            $pdf->writeHtml($hfooter);
         } else {
-            $this->SetFont(self::FONT, '', self::FONT_SIZE - 2);
-            $this->SetTextColor(0, 0, 0);
+            $pdf->SetFont(self::FONT, '', self::FONT_SIZE - 2);
+            $pdf->SetTextColor(0, 0, 0);
 
             $name = preg_replace(
                 '/%s/',
@@ -222,7 +255,7 @@ class Pdf extends \TCPDF
 
             $address = $this->preferences->getPostalAddress();
 
-            $this->MultiCell(
+            $pdf->MultiCell(
                 0,
                 4,
                 $address,
@@ -232,9 +265,9 @@ class Pdf extends \TCPDF
         }
 
         if ($this->paginated) {
-            $this->SetFont(self::FONT, '', self::FONT_SIZE - 3);
-            $this->Ln();
-            $this->Cell(
+            $pdf->SetFont(self::FONT, '', self::FONT_SIZE - 3);
+            $pdf->Ln();
+            $pdf->Cell(
                 0,
                 4,
                 $this->getAliasRightShift() . $this->PageNo() .

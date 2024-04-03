@@ -68,10 +68,9 @@ class PdfMembersLabels extends Pdf
      */
     public function __construct(Preferences $prefs)
     {
-        parent::__construct($prefs);
         $this->setRTL(false);
         $this->filename = __('labels_print_filename') . '.pdf';
-        $this->init();
+        parent::__construct($prefs);
     }
 
     /**
@@ -79,7 +78,7 @@ class PdfMembersLabels extends Pdf
      *
      * @return void
      */
-    private function init()
+    public function init(): void
     {
         // Set document information
         $this->SetTitle(_T("Member's Labels"));
