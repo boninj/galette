@@ -75,7 +75,6 @@ class Pdf extends TCPDF
     private $model;
     private $paginated = false;
     protected $filename;
-    private bool $has_header = true;
     private bool $has_footer = true;
     protected float $footer_height;
 
@@ -142,7 +141,6 @@ class Pdf extends TCPDF
     {
         $this->SetPrintHeader(false);
         $this->setHeaderMargin(0);
-        $this->has_header = false;
     }
 
     /**
