@@ -75,6 +75,8 @@ class Pdf extends TCPDF
     private $model;
     private $paginated = false;
     protected $filename;
+    private bool $has_header = true;
+    private bool $has_footer = true;
     protected float $footer_height;
 
     /**
@@ -115,7 +117,9 @@ class Pdf extends TCPDF
         }
 
         $this->init();
-        $this->calculateFooterHeight();
+        if ($this->has_footer) {
+            $this->calculateFooterHeight();
+        }
     }
 
     /**
@@ -127,6 +131,30 @@ class Pdf extends TCPDF
     {
         $this->Open();
         $this->AddPage();
+    }
+
+    /**
+     * No header
+     *
+     * @return void
+     */
+    protected function setNoHeader(): void
+    {
+        $this->SetPrintHeader(false);
+        $this->setHeaderMargin(0);
+        $this->has_header = false;
+    }
+
+    /**
+     * No footer
+     *
+     * @return void
+     */
+    protected function setNoFooter(): void
+    {
+        $this->SetPrintFooter(false);
+        $this->setFooterMargin(0);
+        $this->has_footer = false;
     }
 
     /**
@@ -246,24 +274,10 @@ class Pdf extends TCPDF
             $hfooter .= $this->model->hfooter;
             $pdf->writeHtml($hfooter);
         } else {
-            $pdf->SetFont(self::FONT, '', self::FONT_SIZE - 2);
-            $pdf->SetTextColor(0, 0, 0);
-
-            $name = preg_replace(
-                '/%s/',
-                $this->preferences->pref_nom,
-                _T("Association %s")
-            );
-
             $address = $this->preferences->getPostalAddress();
-
-            $pdf->MultiCell(
-                0,
-                4,
-                $address,
-                0,
-                'C'
-            );
+            $hfooter = '<style>div#pdf_footer {text-align: center;font-size: 0.7em;}</style>';
+            $hfooter .= '<div id="pdf_footer">' . nl2br($address) . '</div>';
+            $pdf->writeHTML($hfooter);
         }
 
         if ($this->paginated) {
