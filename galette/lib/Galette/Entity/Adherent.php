@@ -1338,7 +1338,7 @@ class Adherent
                     }
 
                     $results = $this->zdb->execute($select);
-                    if ($results->count() !== 0) {
+                    if ($results->count() !== 0 && (!$preferences->pref_bool_mailmulti)) {
                         $this->errors[] = _T("- This E-Mail address is already used by another member!");
                     }
                 } catch (Throwable $e) {
