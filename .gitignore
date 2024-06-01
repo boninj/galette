@@ -94,3 +94,6 @@ build/
 #Working stuff
 dbs/
 dist/
+
+#Visual Code files
+.vscode/
