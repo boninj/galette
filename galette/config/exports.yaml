@@ -17,3 +17,17 @@
     - End date
   separator: ;
   quote: \"
+
+- adherents:
+  # Les des tous les adhérents à jour
+  name: Adherents
+  description: Export des adhérents à jour
+  filename: galette_adherents.csv
+  query: |-
+    SELECT Name, Surname from galette_adherents;
+  headers:
+    - Nom
+    - Prénom
+  separator: ;
+  quote: \"
+  
