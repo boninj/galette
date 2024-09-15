@@ -7,7 +7,7 @@
     SELECT nom_adh, prenom_adh, ville_adh, montant_cotis, date_debut_cotis, date_fin_cotis 
       FROM galette_cotisations 
       INNER JOIN galette_adherents 
-        ON (galette_cotisations.id_adh=galette_adherents.id_adh)
+        ON ( galette_cotisations.id_adh = galette_adherents.id_adh )
   headers:
     - Name
     - Surname
@@ -15,5 +15,57 @@
     - Amount
     - Begin date
     - End date
+  separator: ;
+  quote: \"
+
+- adherents:
+  # Liste de tous les adhérents à jour
+  name: Adherents
+  description: Export des adhérents à jour
+  filename: galette_adherents.csv
+  query: |-
+    SELECT nom_adh, prenom_adh, login_adh, adresse_adh, cp_adh, ville_adh, email_adh
+      FROM galette_cotisations
+        INNER JOIN galette_adherents
+          ON ( galette_cotisations.id_adh = galette_adherents.id_adh )
+        INNER JOIN galette_types_cotisation
+          ON ( galette_cotisations.id_type_cotis = galette_types_cotisation.id_type_cotis )
+        WHERE date_debut_cotis >= '2023-09-01'
+          AND '2024-08-31' > date_debut_cotis
+          AND libelle_type_cotis = 'CartePiscine'
+  headers:
+    - Nom
+    - Prénom
+    - Licence
+    - Adresse
+    - CP
+    - Ville
+    - Email
+  separator: ;
+  quote: \"
+  
+- cartes_2024:
+  # Liste des cartes piscine
+  name: Adherents
+  description: Export des adhérents à jour
+  filename: cartes_2024.csv
+  query: |-
+    SELECT nom_adh, prenom_adh, login_adh, montant_cotis, date_debut_cotis, date_fin_cotis, info_cotis, libelle_type_cotis
+      FROM galette_cotisations
+      INNER JOIN galette_adherents
+        ON ( galette_cotisations.id_adh = galette_adherents.id_adh )
+      INNER JOIN galette_types_cotisation
+        ON ( galette_cotisations.id_type_cotis = galette_types_cotisation.id_type_cotis )
+      WHERE date_debut_cotis >= '2024-09-01'
+        AND '2025-08-31' > date_debut_cotis
+        AND libelle_type_cotis = 'CPPB'
+  headers:
+    - Nom
+    - Prénom
+    - Licence
+    - Adresse
+    - CP
+    - Ville
+    - Email
   separator: ;
   quote: \"

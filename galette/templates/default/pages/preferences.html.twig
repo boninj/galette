@@ -289,6 +289,12 @@
                     </div>
                     <div class="field inline">
                         <div class="ui right aligned toggle checkbox">
+                            <input type="checkbox" name="pref_bool_mailmulti" id="pref_bool_mailmulti" value="1"{% if pref.pref_bool_mailmulti %} checked="checked"{% endif %}/>
+                            <label for="pref_bool_mailmulti">{{ _T("Same email address for different members?") }}</label>
+                        </div>
+                    </div>
+                    <div class="field inline">
+                        <div class="ui right aligned toggle checkbox">
                             <input type="checkbox" name="pref_bool_selfsubscribe" id="pref_bool_selfsubscribe" value="1"{% if pref.pref_bool_selfsubscribe %} checked="checked"{% endif %}/>
                             <label for="pref_bool_selfsubscribe">{{ _T("Self subscription enabled?") }}</label>
                         </div>

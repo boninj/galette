@@ -71,6 +71,7 @@ use Galette\Repository\Members;
  * @property integer $pref_mail_smtp_port
  * @property string $pref_mail_smtp_user
  * @property string $pref_mail_smtp_password
+ * @property string $pref_bool_mailmulti Allow use of a same email for 2 Adherents
  * @property integer $pref_membership_ext
  * @property string $pref_beg_membership
  * @property integer $pref_membership_offermonths
@@ -217,6 +218,7 @@ class Preferences
         'pref_mail_smtp_port'   => '',
         'pref_mail_smtp_user'   => '',
         'pref_mail_smtp_password'   => '',
+        'pref_bool_mailmulti' => false,
         'pref_membership_ext'    =>    12,
         'pref_beg_membership'    =>    '',
         'pref_membership_offermonths' => 0,
